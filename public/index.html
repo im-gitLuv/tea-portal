@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Portal del Estudiante — Talk English Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  /* ── RESET & BASE ── */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { font-size: 16px; }
+  body {
+    font-family: 'Work Sans', sans-serif;
+    background: #f4f6fb;
+    color: #1a1a2e;
+    min-height: 100vh;
+  }
+
+  /* ── VARIABLES ── */
+  :root {
+    --azul:       #283A97;
+    --azul-oscuro:#0F145B;
+    --azul-claro: #4789C8;
+    --rojo:       #EA0029;
+    --gris:       #BBBBBB;
+    --blanco:     #ffffff;
+    --fondo:      #f4f6fb;
+    --borde:      #e2e6f0;
+    --texto-suave:#6b7280;
+    --radio:      12px;
+    --sombra:     0 2px 12px rgba(40,58,151,0.08);
+  }
+
+  /* ── PANTALLAS ── */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* ══════════════════════════════════════════
+     LOGIN
+  ══════════════════════════════════════════ */
+  #screen-login {
+    min-height: 100vh;
+    background: linear-gradient(145deg, #0F145B 0%, #283A97 55%, #4789C8 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+  .login-card {
+    background: var(--blanco);
+    border-radius: 20px;
+    padding: 44px 40px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(15,20,91,0.3);
+    text-align: center;
+  }
+  .login-logo-wrap { margin-bottom: 28px; }
+  .logo-symbol {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px; height: 56px;
+    background: var(--rojo);
+    border-radius: 14px;
+    font-size: 32px;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: 10px;
+  }
+  .logo-name {
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--azul-oscuro);
+  }
+  .login-card h1 {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--azul-oscuro);
+    margin-bottom: 6px;
+  }
+  .login-card p {
+    font-size: 13px;
+    color: var(--texto-suave);
+    margin-bottom: 32px;
+    line-height: 1.6;
+  }
+  .field { text-align: left; margin-bottom: 18px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--azul-oscuro);
+    margin-bottom: 7px;
+  }
+  .field input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1.5px solid var(--borde);
+    border-radius: 10px;
+    font-size: 14px;
+    font-family: 'Work Sans', sans-serif;
+    outline: none;
+    transition: border-color 0.2s;
+    color: var(--azul-oscuro);
+  }
+  .field input:focus { border-color: var(--azul); }
+  .btn-rojo {
+    width: 100%;
+    background: var(--rojo);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 14px;
+    font-weight: 700;
+    font-family: 'Work Sans', sans-serif;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: background 0.2s, transform 0.1s;
+  }
+  .btn-rojo:hover { background: #c8001f; }
+  .btn-rojo:active { transform: scale(0.98); }
+  .btn-rojo:disabled { background: #ccc; cursor: not-allowed; }
+  .login-nota {
+    margin-top: 22px;
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.7;
+  }
+  .tag-badge {
+    display: inline-block;
+    background: #e8f4ea;
+    color: #2a7a3a;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    margin-top: 6px;
+  }
+  .error-msg {
+    background: #fde8e8;
+    color: #a32d2d;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+    text-align: left;
+  }
+
+  /* ══════════════════════════════════════════
+     TOPBAR
+  ══════════════════════════════════════════ */
+  .topbar {
+    background: var(--azul-oscuro);
+    padding: 14px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky; top: 0; z-index: 100;
+  }
+  .topbar-logo {
+    font-size: 13px;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .topbar-logo span { color: var(--rojo); }
+  .topbar-right { display: flex; align-items: center; gap: 12px; }
+  .topbar-user { font-size: 13px; color: rgba(255,255,255,0.65); }
+  .topbar-badge {
+    background: var(--rojo);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+  }
+  .btn-back {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,0.55);
+    font-size: 12px;
+    font-family: 'Work Sans', sans-serif;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.2s;
+  }
+  .btn-back:hover { color: #fff; }
+
+  /* ══════════════════════════════════════════
+     STEP BAR
+  ══════════════════════════════════════════ */
+  .stepbar {
+    background: var(--blanco);
+    padding: 16px 28px;
+    border-bottom: 1px solid var(--borde);
+    display: flex;
+    align-items: center;
+    gap: 0;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+  }
+  .step-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-num.done   { background: #2a7a3a; color: #fff; }
+  .step-num.active { background: var(--rojo); color: #fff; }
+  .step-num.next   { background: #eee; color: #aaa; }
+  .step-label { font-size: 12px; font-weight: 600; color: var(--azul-oscuro); }
+  .step-label.next { color: #aaa; }
+  .step-line { flex: 0 0 28px; height: 2px; background: #eee; margin: 0 4px; }
+  .step-line.done { background: #2a7a3a; }
+
+  /* ══════════════════════════════════════════
+     INNER CONTAINER
+  ══════════════════════════════════════════ */
+  .inner {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 28px 24px;
+  }
+  .screen-title {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--azul-oscuro);
+    margin-bottom: 5px;
+  }
+  .screen-sub {
+    font-size: 13px;
+    color: var(--texto-suave);
+    margin-bottom: 28px;
+    line-height: 1.6;
+  }
+
+  /* ══════════════════════════════════════════
+     BLOQUE CARDS
+  ══════════════════════════════════════════ */
+  .bloque-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  @media (max-width: 600px) { .bloque-grid { grid-template-columns: 1fr; } }
+  .bloque-card {
+    background: var(--blanco);
+    border: 2px solid var(--borde);
+    border-radius: var(--radio);
+    padding: 22px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .bloque-card:hover:not(.lleno) { border-color: var(--azul); box-shadow: var(--sombra); }
+  .bloque-card.seleccionado { border-color: var(--azul); background: #eef1fb; }
+  .bloque-card.lleno { opacity: 0.45; cursor: not-allowed; }
+  .bloque-icon { font-size: 26px; margin-bottom: 10px; }
+  .bloque-nombre { font-size: 14px; font-weight: 700; color: var(--azul-oscuro); margin-bottom: 4px; }
+  .bloque-horas  { font-size: 12px; color: var(--texto-suave); margin-bottom: 12px; }
+  .bloque-pill {
+    font-size: 11px; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+    display: inline-block;
+  }
+  .pill-ok     { background: #e8f4ea; color: #2a7a3a; }
+  .pill-poco   { background: #fff3cd; color: #856404; }
+  .pill-lleno  { background: #fde8e8; color: #a32d2d; }
+  .lleno-tag {
+    position: absolute; top: 10px; right: 10px;
+    background: var(--rojo); color: #fff;
+    font-size: 9px; font-weight: 700;
+    padding: 2px 7px; border-radius: 20px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+
+  /* ══════════════════════════════════════════
+     HORA CHIPS
+  ══════════════════════════════════════════ */
+  .seccion-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    color: var(--azul); margin-bottom: 12px;
+  }
+  .hora-chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 32px; }
+  .hora-chip {
+    border: 1.5px solid var(--borde);
+    border-radius: 10px;
+    padding: 10px 20px;
+    font-size: 14px; font-weight: 600;
+    color: var(--azul-oscuro);
+    cursor: pointer;
+    background: var(--blanco);
+    transition: all 0.2s;
+    font-family: 'Work Sans', sans-serif;
+  }
+  .hora-chip:hover { border-color: var(--azul); }
+  .hora-chip.seleccionada { background: var(--azul); color: #fff; border-color: var(--azul); }
+
+  /* ══════════════════════════════════════════
+     CONFIRM BAR
+  ══════════════════════════════════════════ */
+  .confirm-bar {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    padding: 18px 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    box-shadow: var(--sombra);
+  }
+  .confirm-resumen { font-size: 13px; color: var(--azul-oscuro); font-weight: 500; line-height: 1.6; }
+  .confirm-resumen strong { color: var(--rojo); }
+  .btn-siguiente {
+    background: var(--rojo);
+    color: #fff; border: none;
+    border-radius: 10px;
+    padding: 12px 22px;
+    font-size: 13px; font-weight: 700;
+    font-family: 'Work Sans', sans-serif;
+    cursor: pointer;
+    white-space: nowrap;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .btn-siguiente:hover { background: #c8001f; }
+  .btn-siguiente:disabled { background: #ccc; cursor: not-allowed; }
+
+  /* ══════════════════════════════════════════
+     TEACHER GALLERY
+  ══════════════════════════════════════════ */
+  .prof-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 28px;
+  }
+  @media (max-width: 600px) { .prof-grid { grid-template-columns: 1fr 1fr; } }
+  .prof-card {
+    background: var(--blanco);
+    border: 2px solid var(--borde);
+    border-radius: var(--radio);
+    padding: 20px 14px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+  }
+  .prof-card:hover:not(.no-cupo) { border-color: var(--azul); box-shadow: var(--sombra); }
+  .prof-card.seleccionado { border-color: var(--rojo); background: #fff5f6; }
+  .prof-card.no-cupo { opacity: 0.4; cursor: not-allowed; }
+  .prof-avatar {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    margin: 0 auto 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; font-weight: 700; color: #fff;
+  }
+  .prof-nombre { font-size: 14px; font-weight: 700; color: var(--azul-oscuro); margin-bottom: 4px; }
+  .prof-bio    { font-size: 11px; color: var(--texto-suave); margin-bottom: 10px; line-height: 1.5; }
+  .prof-cupos  { font-size: 11px; font-weight: 700; color: #2a7a3a; }
+  .prof-cupos.warn { color: #856404; }
+  .prof-cupos.none { color: #a32d2d; }
+  .prof-video {
+    margin-top: 10px;
+    font-size: 10px; font-weight: 700;
+    color: var(--azul);
+    background: #eef1fb;
+    border: none; border-radius: 6px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-family: 'Work Sans', sans-serif;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    transition: background 0.2s;
+  }
+  .prof-video:hover { background: #d8dff7; }
+  .check-badge {
+    position: absolute; top: 10px; right: 10px;
+    width: 20px; height: 20px;
+    background: var(--rojo); border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 12px; font-weight: 700;
+  }
+
+  /* ══════════════════════════════════════════
+     LOADING SPINNER
+  ══════════════════════════════════════════ */
+  .loader-wrap {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 60px 0; gap: 16px;
+  }
+  .spinner {
+    width: 36px; height: 36px;
+    border: 3px solid var(--borde);
+    border-top-color: var(--azul);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .loader-txt { font-size: 13px; color: var(--texto-suave); }
+
+  /* ══════════════════════════════════════════
+     DASHBOARD
+  ══════════════════════════════════════════ */
+  .success-banner {
+    background: #e8f4ea;
+    border: 1px solid #b5d9bc;
+    border-radius: var(--radio);
+    padding: 16px 20px;
+    display: flex; align-items: center; gap: 14px;
+    margin-bottom: 24px;
+  }
+  .success-icon {
+    width: 36px; height: 36px;
+    background: #2a7a3a; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    color: #fff; font-size: 18px; flex-shrink: 0;
+  }
+  .success-txt { font-size: 13px; font-weight: 600; color: #1a5c28; line-height: 1.6; }
+
+  .dash-tabs {
+    display: flex; gap: 0;
+    border-bottom: 2px solid var(--borde);
+    margin-bottom: 24px;
+  }
+  .dash-tab {
+    padding: 11px 20px;
+    font-size: 13px; font-weight: 600;
+    color: var(--texto-suave);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    background: none; border-top: none; border-left: none; border-right: none;
+    font-family: 'Work Sans', sans-serif;
+    transition: all 0.2s;
+  }
+  .dash-tab.activo { color: var(--rojo); border-bottom-color: var(--rojo); }
+  .dash-tab:hover { color: var(--azul-oscuro); }
+  .tab-content { display: none; }
+  .tab-content.activo { display: block; }
+
+  .dash-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  @media (max-width: 600px) { .dash-grid { grid-template-columns: 1fr; } }
+
+  .dash-card {
+    background: var(--blanco);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    padding: 20px;
+    box-shadow: var(--sombra);
+  }
+  .card-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 16px;
+  }
+  .card-icon {
+    width: 34px; height: 34px;
+    border-radius: 9px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; flex-shrink: 0;
+  }
+  .ci-azul  { background: #eef1fb; }
+  .ci-rojo  { background: #fde8e8; }
+  .ci-verde { background: #e8f4ea; }
+  .card-titulo {
+    font-size: 12px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--azul-oscuro);
+  }
+  .info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 0; border-bottom: 1px solid #f5f5f5;
+    font-size: 13px;
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-label { color: var(--texto-suave); }
+  .info-val   { font-weight: 600; color: var(--azul-oscuro); }
+  .info-tag {
+    background: var(--azul); color: #fff;
+    font-size: 10px; font-weight: 700;
+    padding: 2px 9px; border-radius: 20px;
+  }
+
+  .prof-asignado {
+    display: flex; align-items: center; gap: 14px;
+    background: #f4f6fb; border-radius: 10px;
+    padding: 14px; margin-bottom: 14px;
+  }
+  .pa-ava {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: var(--azul); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 17px; font-weight: 700; flex-shrink: 0;
+  }
+  .pa-nombre { font-size: 15px; font-weight: 700; color: var(--azul-oscuro); }
+  .pa-rol    { font-size: 12px; color: var(--texto-suave); }
+  .btn-wa {
+    width: 100%; margin-top: 12px;
+    background: #f0f3ff; border: 1px solid var(--azul);
+    color: var(--azul); border-radius: 9px;
+    padding: 9px; font-size: 12px; font-weight: 700;
+    cursor: pointer; font-family: 'Work Sans', sans-serif;
+    transition: background 0.2s;
+  }
+  .btn-wa:hover { background: #dce3ff; }
+
+  .prog-bar { background: #f0f0f0; border-radius: 20px; height: 9px; margin: 14px 0 6px; overflow: hidden; }
+  .prog-fill { height: 100%; border-radius: 20px; background: linear-gradient(90deg, var(--azul), var(--azul-claro)); }
+  .prog-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--texto-suave); }
+
+  /* LIBRARY */
+  .lib-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+  @media (max-width: 600px) { .lib-grid { grid-template-columns: 1fr 1fr; } }
+  .lib-card {
+    background: var(--blanco); border: 1px solid var(--borde);
+    border-radius: 10px; padding: 16px 14px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .lib-card:hover { border-color: var(--azul); box-shadow: var(--sombra); }
+  .lib-icon { font-size: 24px; margin-bottom: 9px; }
+  .lib-titulo { font-size: 12px; font-weight: 700; color: var(--azul-oscuro); margin-bottom: 3px; line-height: 1.4; }
+  .lib-meta   { font-size: 11px; color: #aaa; }
+  .lib-tipo {
+    font-size: 10px; font-weight: 700;
+    padding: 2px 8px; border-radius: 20px;
+    display: inline-block; margin-top: 9px;
+  }
+  .lt-video    { background: #fde8e8; color: #a32d2d; }
+  .lt-doc      { background: #eef1fb; color: #185fa5; }
+  .lt-actividad{ background: #e8f4ea; color: #2a7a3a; }
+
+  /* FASES */
+  .fase-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 9px 0; border-bottom: 1px solid #f5f5f5;
+    font-size: 13px;
+  }
+  .fase-row:last-child { border-bottom: none; }
+  .fase-dot { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+  .fd-hecho   { background: #2a7a3a; }
+  .fd-activo  { background: var(--azul); }
+  .fd-pending { background: #ddd; }
+  .fase-nombre { flex: 1; font-weight: 500; color: var(--azul-oscuro); }
+  .fase-sems   { color: var(--texto-suave); font-size: 12px; }
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     PANTALLA 1: LOGIN
+════════════════════════════════════════ -->
+<div id="screen-login" class="screen active">
+  <div style="min-height:100vh; background:linear-gradient(145deg,#0F145B 0%,#283A97 55%,#4789C8 100%); display:flex; align-items:center; justify-content:center; padding:24px;">
+    <div class="login-card">
+      <div class="login-logo-wrap">
+        <div class="logo-symbol">T</div>
+        <span class="logo-name">Talk English Academy</span>
+      </div>
+      <h1>Portal del Estudiante</h1>
+      <p>Acceso exclusivo para estudiantes inscritos en el Programa de Mentoring 1:1</p>
+
+      <div id="login-error" class="error-msg"></div>
+
+      <div class="field">
+        <label>Correo electrónico</label>
+        <input type="email" id="inp-email" placeholder="tu@email.com" autocomplete="email" />
+      </div>
+      <div class="field">
+        <label>Contraseña</label>
+        <input type="password" id="inp-pass" placeholder="••••••••" autocomplete="current-password" />
+      </div>
+      <button class="btn-rojo" id="btn-login" onclick="doLogin()">Ingresar al Portal</button>
+      <div class="login-nota">
+        Solo pueden acceder estudiantes verificados con el tag<br>
+        <span class="tag-badge">TEA-Student ✓</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PANTALLA 2: SELECCIÓN DE BLOQUE
+════════════════════════════════════════ -->
+<div id="screen-bloque" class="screen">
+  <div class="topbar">
+    <span class="topbar-logo">Talk <span>English</span> Academy</span>
+    <div class="topbar-right">
+      <span class="topbar-user" id="tb-nombre-bloque"></span>
+      <span class="topbar-badge">Paso 1 de 3</span>
+    </div>
+  </div>
+  <div class="stepbar">
+    <div class="step"><div class="step-num active">1</div><span class="step-label">Horario</span></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-num next">2</div><span class="step-label next">Hora</span></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-num next">3</div><span class="step-label next">Profesor</span></div>
+  </div>
+  <div class="inner">
+    <p class="screen-title">Elige tu bloque de horario</p>
+    <p class="screen-sub">Tus clases serán de lunes a viernes, 45 minutos diarios. Elige el bloque que mejor se adapte a tu rutina.</p>
+
+    <div class="bloque-grid">
+      <div class="bloque-card" id="bloque-manana" onclick="seleccionarBloque('manana', this)">
+        <div class="bloque-icon">🌅</div>
+        <div class="bloque-nombre">Mañana</div>
+        <div class="bloque-horas">8:00 AM – 11:00 AM</div>
+        <span class="bloque-pill pill-ok">Disponible</span>
+      </div>
+      <div class="bloque-card" id="bloque-tarde" onclick="seleccionarBloque('tarde', this)">
+        <div class="bloque-icon">☀️</div>
+        <div class="bloque-nombre">Medio día / Tarde</div>
+        <div class="bloque-horas">1:00 PM – 4:00 PM</div>
+        <span class="bloque-pill pill-ok">Disponible</span>
+      </div>
+      <div class="bloque-card" id="bloque-noche" onclick="seleccionarBloque('noche', this)">
+        <div class="bloque-icon">🌙</div>
+        <div class="bloque-nombre">Tarde / Noche</div>
+        <div class="bloque-horas">5:00 PM – 8:00 PM</div>
+        <span class="bloque-pill pill-ok">Disponible</span>
+      </div>
+    </div>
+
+    <div id="hora-section" style="display:none;">
+      <p class="seccion-label">Escoge tu hora exacta</p>
+      <div class="hora-chips" id="hora-chips"></div>
+    </div>
+
+    <div class="confirm-bar">
+      <div class="confirm-resumen" id="bloque-resumen">Selecciona un bloque para continuar</div>
+      <button class="btn-siguiente" id="btn-ver-profes" disabled onclick="irAProfesores()">Ver Profesores →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PANTALLA 3: SELECCIÓN DE PROFESOR
+════════════════════════════════════════ -->
+<div id="screen-profesor" class="screen">
+  <div class="topbar">
+    <button class="btn-back" onclick="goTo('screen-bloque')">← Cambiar horario</button>
+    <span class="topbar-logo">Talk <span>English</span> Academy</span>
+    <span class="topbar-badge">Paso 2 de 3</span>
+  </div>
+  <div class="stepbar">
+    <div class="step"><div class="step-num done">✓</div><span class="step-label">Horario</span></div>
+    <div class="step-line done"></div>
+    <div class="step"><div class="step-num done">✓</div><span class="step-label">Hora</span></div>
+    <div class="step-line"></div>
+    <div class="step"><div class="step-num active">3</div><span class="step-label">Profesor</span></div>
+  </div>
+  <div class="inner">
+    <p class="screen-title">Elige tu profesor</p>
+    <p class="screen-sub" id="prof-subtitulo">Profesores disponibles para tu bloque</p>
+
+    <div id="prof-loader" class="loader-wrap">
+      <div class="spinner"></div>
+      <span class="loader-txt">Consultando disponibilidad...</span>
+    </div>
+
+    <div id="prof-grid" class="prof-grid" style="display:none;"></div>
+
+    <div class="confirm-bar" id="prof-confirm-bar" style="display:none;">
+      <div class="confirm-resumen" id="prof-resumen">Selecciona un profesor para continuar</div>
+      <button class="btn-siguiente" id="btn-confirmar" disabled onclick="confirmarAsignacion()">Confirmar Inscripción →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     PANTALLA 4: DASHBOARD
+════════════════════════════════════════ -->
+<div id="screen-dashboard" class="screen">
+  <div class="topbar">
+    <span class="topbar-logo">Talk <span>English</span> Academy</span>
+    <div class="topbar-right">
+      <span class="topbar-user" id="tb-nombre-dash"></span>
+      <span class="topbar-badge" id="tb-semana">Semana 1</span>
+    </div>
+  </div>
+  <div class="inner">
+
+    <div id="dash-banner" class="success-banner" style="display:none;">
+      <div class="success-icon">✓</div>
+      <div class="success-txt">¡Inscripción confirmada! Tu profesor y horario han sido registrados. Recibirás un mensaje por WhatsApp con los detalles de tu primera clase.</div>
+    </div>
+
+    <div class="dash-tabs">
+      <button class="dash-tab activo" onclick="switchTab(this,'tab-inicio')">Mi Espacio</button>
+      <button class="dash-tab" onclick="switchTab(this,'tab-biblioteca')">Biblioteca</button>
+      <button class="dash-tab" onclick="switchTab(this,'tab-progreso')">Mi Progreso</button>
+    </div>
+
+    <!-- TAB INICIO -->
+    <div id="tab-inicio" class="tab-content activo">
+      <div class="dash-grid">
+        <div class="dash-card">
+          <div class="card-header">
+            <div class="card-icon ci-azul">📅</div>
+            <div class="card-titulo">Mi Horario Semanal</div>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Días</span>
+            <span class="info-val">Lun – Vie</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Hora</span>
+            <span class="info-val" id="dash-hora">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Bloque</span>
+            <span class="info-val" id="dash-bloque">—</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Estado</span>
+            <span class="info-tag">Confirmado</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">Plataforma</span>
+            <span class="info-val">Google Meet</span>
+          </div>
+        </div>
+
+        <div class="dash-card">
+          <div class="card-header">
+            <div class="card-icon ci-rojo">👩‍🏫</div>
+            <div class="card-titulo">Mi Profesor</div>
+          </div>
+          <div class="prof-asignado">
+            <div class="pa-ava" id="dash-prof-ava">?</div>
+            <div>
+              <div class="pa-nombre" id="dash-prof-nombre">—</div>
+              <div class="pa-rol">Mentor TEA</div>
+            </div>
+          </div>
+          <div id="dash-prof-bio" style="font-size:12px; color:var(--texto-suave); line-height:1.6;"></div>
+          <button class="btn-wa">📱 Contactar por WhatsApp</button>
+        </div>
+      </div>
+
+      <div class="dash-card">
+        <div class="card-header">
+          <div class="card-icon ci-verde">📊</div>
+          <div class="card-titulo">Tu Progreso — Fase 1: El Despertar</div>
+        </div>
+        <div class="prog-bar"><div class="prog-fill" style="width:12%;"></div></div>
+        <div class="prog-labels"><span>Semana 1 de 26</span><span>12% completado</span></div>
+      </div>
+    </div>
+
+    <!-- TAB BIBLIOTECA -->
+    <div id="tab-biblioteca" class="tab-content">
+      <div class="lib-grid">
+        <div class="lib-card">
+          <div class="lib-icon">🎬</div>
+          <div class="lib-titulo">Sonidos que no existen en español</div>
+          <div class="lib-meta">Fase 1 · 18 min</div>
+          <span class="lib-tipo lt-video">Video</span>
+        </div>
+        <div class="lib-card">
+          <div class="lib-icon">📄</div>
+          <div class="lib-titulo">50 Frases de impacto en el trabajo</div>
+          <div class="lib-meta">Todas las fases · PDF</div>
+          <span class="lib-tipo lt-doc">Documento</span>
+        </div>
+        <div class="lib-card">
+          <div class="lib-icon">🎯</div>
+          <div class="lib-titulo">Respuestas instantáneas — Ejercicio</div>
+          <div class="lib-meta">Fase 2 · 20 min</div>
+          <span class="lib-tipo lt-actividad">Actividad</span>
+        </div>
+        <div class="lib-card">
+          <div class="lib-icon">🎬</div>
+          <div class="lib-titulo">Cómo pedir un aumento en inglés</div>
+          <div class="lib-meta">Fase 4 · 25 min</div>
+          <span class="lib-tipo lt-video">Video</span>
+        </div>
+        <div class="lib-card">
+          <div class="lib-icon">📄</div>
+          <div class="lib-titulo">Vocabulario de negociación laboral</div>
+          <div class="lib-meta">Fase 3 · PDF</div>
+          <span class="lib-tipo lt-doc">Documento</span>
+        </div>
+        <div class="lib-card">
+          <div class="lib-icon">🎯</div>
+          <div class="lib-titulo">Conversación simulada: entrevista</div>
+          <div class="lib-meta">Fase 3 · 30 min</div>
+          <span class="lib-tipo lt-actividad">Actividad</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB PROGRESO -->
+    <div id="tab-progreso" class="tab-content">
+      <div class="dash-card">
+        <div class="card-header">
+          <div class="card-icon ci-azul">🗓️</div>
+          <div class="card-titulo">Las 4 Fases del Programa</div>
+        </div>
+        <div class="fase-row">
+          <div class="fase-dot fd-activo"></div>
+          <span class="fase-nombre">Fase 1 — El Despertar</span>
+          <span class="fase-sems">Sem. 1–6</span>
+          <span class="lib-tipo lt-doc" style="background:#eef1fb; color:#185fa5;">En curso</span>
+        </div>
+        <div class="fase-row">
+          <div class="fase-dot fd-pending"></div>
+          <span class="fase-nombre">Fase 2 — El Desafío</span>
+          <span class="fase-sems">Sem. 7–16</span>
+          <span style="font-size:11px; color:#aaa;">Próximamente</span>
+        </div>
+        <div class="fase-row">
+          <div class="fase-dot fd-pending"></div>
+          <span class="fase-nombre">Fase 3 — El Flujo</span>
+          <span class="fase-sems">Sem. 17–22</span>
+          <span style="font-size:11px; color:#aaa;">Próximamente</span>
+        </div>
+        <div class="fase-row">
+          <div class="fase-dot fd-pending"></div>
+          <span class="fase-nombre">Fase 4 — El Dominio</span>
+          <span class="fase-sems">Sem. 23–26</span>
+          <span style="font-size:11px; color:#aaa;">Próximamente</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════ -->
+<script>
+  // ── CONFIG ──────────────────────────────────────────────────────────────────
+  // Reemplaza esta URL con la de tu función Vercel una vez desplegada
+  var API_BASE = 'https://tea-portal-api.vercel.app/api/tea';
+
+  // Colores para avatares de profesores
+  var AVATAR_COLORS = ['#EA0029','#283A97','#2a7a3a','#856404','#4789C8','#7b3f9e'];
+
+  var HORAS_POR_BLOQUE = {
+    manana: ['8:00 AM','9:00 AM','10:00 AM','11:00 AM'],
+    tarde:  ['1:00 PM','2:00 PM','3:00 PM','4:00 PM'],
+    noche:  ['5:00 PM','6:00 PM','7:00 PM','8:00 PM'],
+  };
+
+  var BLOQUE_LABELS = {
+    manana: '🌅 Mañana',
+    tarde:  '☀️ Tarde',
+    noche:  '🌙 Noche',
+  };
+
+  // ── ESTADO GLOBAL ────────────────────────────────────────────────────────────
+  var state = {
+    studentId:      null,
+    studentNombre:  null,
+    bloque:         null,
+    hora:           null,
+    profesor:       null,   // { id, userId, nombre, bio }
+    recienAsignado: false,
+  };
+
+  // ── NAVEGACIÓN ────────────────────────────────────────────────────────────────
+  function goTo(screenId) {
+    document.querySelectorAll('.screen').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById(screenId).classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // ── LOGIN ────────────────────────────────────────────────────────────────────
+  async function doLogin() {
+    var email = document.getElementById('inp-email').value.trim();
+    var pass  = document.getElementById('inp-pass').value.trim();
+    var errEl = document.getElementById('login-error');
+    var btn   = document.getElementById('btn-login');
+
+    errEl.style.display = 'none';
+    if (!email || !pass) {
+      errEl.textContent = 'Por favor ingresa tu correo y contraseña.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    btn.disabled = true;
+    btn.textContent = 'Verificando...';
+
+    try {
+      var res  = await fetch(API_BASE + '?action=login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pass }),
+      });
+      var data = await res.json();
+
+      if (!data.ok) {
+        var msgs = {
+          NO_STUDENT: 'No encontramos una cuenta con ese correo.',
+          NO_TAG:     'Tu cuenta aún no tiene acceso al portal. Contacta a TEA por WhatsApp.',
+          WRONG_PASS: 'Contraseña incorrecta. Si es tu primer acceso, usa los últimos 4 dígitos de tu teléfono.',
+        };
+        errEl.textContent = msgs[data.error] || 'Error al iniciar sesión. Intenta de nuevo.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      state.studentId     = data.student.id;
+      state.studentNombre = data.student.nombre;
+
+      // Si ya tiene horario asignado → ir directo al dashboard
+      if (data.student.yaAsignado) {
+        cargarDashboard(data.student);
+        goTo('screen-dashboard');
+      } else {
+        document.getElementById('tb-nombre-bloque').textContent = data.student.nombre.split(' ')[0];
+        goTo('screen-bloque');
+      }
+    } catch(e) {
+      errEl.textContent = 'Error de conexión. Intenta de nuevo.';
+      errEl.style.display = 'block';
+    } finally {
+      btn.disabled = false;
+      btn.textContent = 'Ingresar al Portal';
+    }
+  }
+
+  // Enter en login
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Enter' && document.getElementById('screen-login').classList.contains('active')) {
+      doLogin();
+    }
+  });
+
+  // ── SELECCIÓN DE BLOQUE ──────────────────────────────────────────────────────
+  function seleccionarBloque(bloque, el) {
+    if (el.classList.contains('lleno')) return;
+    document.querySelectorAll('.bloque-card').forEach(function(c){ c.classList.remove('seleccionado'); });
+    el.classList.add('seleccionado');
+    state.bloque = bloque;
+    state.hora   = null;
+
+    // Mostrar horas
+    var container = document.getElementById('hora-chips');
+    container.innerHTML = '';
+    HORAS_POR_BLOQUE[bloque].forEach(function(h) {
+      var chip = document.createElement('div');
+      chip.className = 'hora-chip';
+      chip.textContent = h;
+      chip.onclick = function(){ seleccionarHora(h, chip); };
+      container.appendChild(chip);
+    });
+    document.getElementById('hora-section').style.display = 'block';
+    document.getElementById('bloque-resumen').textContent = 'Ahora selecciona una hora exacta';
+    document.getElementById('btn-ver-profes').disabled = true;
+  }
+
+  function seleccionarHora(hora, el) {
+    document.querySelectorAll('.hora-chip').forEach(function(c){ c.classList.remove('seleccionada'); });
+    el.classList.add('seleccionada');
+    state.hora = hora;
+    document.getElementById('bloque-resumen').innerHTML =
+      'Bloque: <strong>' + BLOQUE_LABELS[state.bloque] + '</strong> &nbsp;·&nbsp; Hora: <strong>' + hora + '</strong>';
+    document.getElementById('btn-ver-profes').disabled = false;
+  }
+
+  // ── IR A PROFESORES ──────────────────────────────────────────────────────────
+  async function irAProfesores() {
+    if (!state.bloque || !state.hora) return;
+    document.getElementById('prof-subtitulo').textContent =
+      'Profesores disponibles — ' + BLOQUE_LABELS[state.bloque] + ' · ' + state.hora;
+    goTo('screen-profesor');
+    await cargarProfesores();
+  }
+
+  async function cargarProfesores() {
+    document.getElementById('prof-loader').style.display  = 'flex';
+    document.getElementById('prof-grid').style.display    = 'none';
+    document.getElementById('prof-confirm-bar').style.display = 'none';
+
+    try {
+      var res  = await fetch(API_BASE + '?action=profesores&bloque=' + state.bloque);
+      var data = await res.json();
+
+      var grid = document.getElementById('prof-grid');
+      grid.innerHTML = '';
+
+      if (!data.ok || !data.profesores.length) {
+        grid.innerHTML = '<p style="color:var(--texto-suave); font-size:14px; grid-column:1/-1;">No hay profesores disponibles en este bloque en este momento. Por favor elige otro bloque.</p>';
+        grid.style.display = 'grid';
+        document.getElementById('prof-loader').style.display = 'none';
+        return;
+      }
+
+      data.profesores.forEach(function(prof, i) {
+        var iniciales = prof.nombre.split(' ').map(function(p){ return p[0]; }).join('').slice(0,2).toUpperCase();
+        var color     = AVATAR_COLORS[i % AVATAR_COLORS.length];
+        var cuposClass = prof.cuposDisponibles === 1 ? 'warn' : '';
+        var videoBtn  = prof.videoUrl
+          ? '<button class="prof-video" onclick="abrirVideo(\'' + prof.videoUrl + '\', event)">▶ Ver video</button>'
+          : '';
+
+        var card = document.createElement('div');
+        card.className = 'prof-card';
+        card.dataset.profId     = prof.id;
+        card.dataset.profUserId = prof.userId;
+        card.dataset.profNombre = prof.nombre;
+        card.dataset.profBio    = prof.bio;
+        card.innerHTML =
+          '<div class="prof-avatar" style="background:' + color + ';">' + iniciales + '</div>' +
+          '<div class="prof-nombre">' + prof.nombre + '</div>' +
+          '<div class="prof-bio">' + (prof.bio || 'Mentor certificado de Talk English Academy') + '</div>' +
+          '<div class="prof-cupos ' + cuposClass + '">' + prof.cuposDisponibles + ' cupo' + (prof.cuposDisponibles !== 1 ? 's' : '') + ' disponible' + (prof.cuposDisponibles !== 1 ? 's' : '') + '</div>' +
+          videoBtn;
+        card.onclick = function(){ seleccionarProfesor(card); };
+        grid.appendChild(card);
+      });
+
+      grid.style.display = 'grid';
+      document.getElementById('prof-confirm-bar').style.display = 'flex';
+    } catch(e) {
+      document.getElementById('prof-grid').innerHTML = '<p style="color:#a32d2d; grid-column:1/-1;">Error al cargar profesores. Recarga la página.</p>';
+      document.getElementById('prof-grid').style.display = 'grid';
+    } finally {
+      document.getElementById('prof-loader').style.display = 'none';
+    }
+  }
+
+  function seleccionarProfesor(card) {
+    document.querySelectorAll('.prof-card').forEach(function(c){
+      c.classList.remove('seleccionado');
+      var chk = c.querySelector('.check-badge');
+      if (chk) chk.remove();
+    });
+    card.classList.add('seleccionado');
+    state.profesor = {
+      id:      card.dataset.profId,
+      userId:  card.dataset.profUserId,
+      nombre:  card.dataset.profNombre,
+      bio:     card.dataset.profBio,
+    };
+    var chk = document.createElement('div');
+    chk.className = 'check-badge';
+    chk.textContent = '✓';
+    card.appendChild(chk);
+
+    document.getElementById('prof-resumen').innerHTML =
+      'Profesor: <strong>' + state.profesor.nombre + '</strong>';
+    document.getElementById('btn-confirmar').disabled = false;
+  }
+
+  function abrirVideo(url, e) {
+    e.stopPropagation();
+    window.open(url, '_blank');
+  }
+
+  // ── CONFIRMAR ASIGNACIÓN ─────────────────────────────────────────────────────
+  async function confirmarAsignacion() {
+    var btn = document.getElementById('btn-confirmar');
+    btn.disabled = true;
+    btn.textContent = 'Confirmando...';
+
+    try {
+      var res = await fetch(API_BASE + '?action=asignar', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentId:          state.studentId,
+          profesorContactoId: state.profesor.id,
+          profesorUserId:     state.profesor.userId,
+          profesorNombre:     state.profesor.nombre,
+          bloque:             state.bloque,
+          hora:               state.hora,
+        }),
+      });
+      var data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+
+      state.recienAsignado = true;
+      cargarDashboard(null);
+      goTo('screen-dashboard');
+    } catch(e) {
+      alert('Hubo un error al confirmar. Por favor intenta de nuevo o contacta a TEA.');
+      btn.disabled = false;
+      btn.textContent = 'Confirmar Inscripción →';
+    }
+  }
+
+  // ── DASHBOARD ────────────────────────────────────────────────────────────────
+  function cargarDashboard(studentData) {
+    var nombre = (studentData && studentData.nombre) || state.studentNombre || '';
+    var bloque = (studentData && studentData.bloque)  || state.bloque || '';
+    var hora   = (studentData && studentData.hora)    || state.hora   || '';
+    var profNombre = (studentData && studentData.profesor) || (state.profesor && state.profesor.nombre) || '';
+    var profBio    = (state.profesor && state.profesor.bio) || '';
+
+    document.getElementById('tb-nombre-dash').textContent = nombre.split(' ')[0];
+    document.getElementById('dash-hora').textContent    = hora;
+    document.getElementById('dash-bloque').textContent  = BLOQUE_LABELS[bloque] || bloque;
+
+    var iniciales = profNombre.split(' ').map(function(p){ return p[0]; }).join('').slice(0,2).toUpperCase();
+    document.getElementById('dash-prof-ava').textContent    = iniciales;
+    document.getElementById('dash-prof-nombre').textContent = profNombre;
+    document.getElementById('dash-prof-bio').textContent    = profBio || 'Mentor certificado de Talk English Academy';
+
+    if (state.recienAsignado) {
+      document.getElementById('dash-banner').style.display = 'flex';
+    }
+  }
+
+  // ── TABS ─────────────────────────────────────────────────────────────────────
+  function switchTab(btn, tabId) {
+    document.querySelectorAll('.dash-tab').forEach(function(t){ t.classList.remove('activo'); });
+    document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('activo'); });
+    btn.classList.add('activo');
+    document.getElementById(tabId).classList.add('activo');
+  }
+</script>
+</body>
+</html>
