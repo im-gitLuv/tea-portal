@@ -3,7 +3,6 @@ const FUNNELUP_API = 'https://services.leadconnectorhq.com';
 const LOCATION_ID  = '9cXtL7yJiTR3U0C2xmDt';
 const API_KEY      = process.env.FUNNELUP_API_KEY;
 
-// Nathaly removida. Militza full en todos los bloques.
 const PROFESORES = [
   { nombre: 'Daniela Guzman',     userId: '8nZnZoJ4THtn2KwuFiqD', email: 'gladismarguzman@gmail.com'       },
   { nombre: 'David Gonzalez',     userId: 'ruaficj9PgvxfYsy0NfX', email: 'davidsecundaria20@gmail.com'     },
@@ -12,17 +11,12 @@ const PROFESORES = [
   { nombre: 'Militza Castañeda',  userId: 'ufSR1xGQmBXgON6vMSRT', email: 'milidelvalle2000@gmail.com'     },
 ];
 
-// Cupos iniciales actuales confirmados.
-// Militza full en todos los bloques (no aparecerá).
-// Jeffry solo disponible a las 8PM → su bloque noche tiene 2 cupos ocupados,
-// lo que deja 1 cupo, pero solo aparece si el lead selecciona 8:00 PM.
-// La lógica de hora + calendario filtra lo demás automáticamente.
 const ALUMNOS_INICIALES = {
-  'gladismarguzman@gmail.com':      { manana: 0, tarde: 2, noche: 3 }, // 3 cupos mañana, 1 tarde (2 ocupados), noche full
-  'davidsecundaria20@gmail.com':    { manana: 0, tarde: 0, noche: 0 }, // 3+3+3 disponibles
-  'isabellarodriguez.am@gmail.com': { manana: 2, tarde: 0, noche: 0 }, // 1 mañana (2 ocupados), 3+3 tarde/noche
-  'ferrerjeffry9@gmail.com':        { manana: 3, tarde: 3, noche: 2 }, // solo 1 cupo en noche (8PM)
-  'milidelvalle2000@gmail.com':     { manana: 3, tarde: 3, noche: 3 }, // full — no aparece nunca
+  'gladismarguzman@gmail.com':      { manana: 0, tarde: 2, noche: 3 },
+  'davidsecundaria20@gmail.com':    { manana: 0, tarde: 0, noche: 0 },
+  'isabellarodriguez.am@gmail.com': { manana: 2, tarde: 0, noche: 0 },
+  'ferrerjeffry9@gmail.com':        { manana: 3, tarde: 3, noche: 2 },
+  'milidelvalle2000@gmail.com':     { manana: 3, tarde: 3, noche: 3 },
 };
 
 const MAX_ALUMNOS_POR_BLOQUE = 3;
@@ -31,6 +25,23 @@ const BLOQUES = {
   tarde:  { inicio: 13, fin: 16 },
   noche:  { inicio: 17, fin: 21 },
 };
+
+// IDs reales de los custom fields en FunnelUp (obtenidos via API)
+const FIELD_IDS = {
+  tea_horario_asignado:  'D21J2OhL2lbShnJUFCqm',
+  tea_bloque:            'KoZo29futqnIujB4igX3',
+  tea_profesor_asignado: 'bM4AbwxNURruK2Ztza3W',
+  tea_hora:              'khp9riWSgCna58A6O4pd',
+  teacher_id:            'lqmCt3gqk1UMheYDbG7A',
+  tea_fecha_inicio:      '1YAuS54toIr124DvkjOY',
+};
+
+// Leer custom field por ID real
+function cf(contact, nombre) {
+  const fieldId = FIELD_IDS[nombre];
+  if (!fieldId) return '';
+  return contact?.customFields?.find(f => f.id === fieldId)?.value || '';
+}
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
@@ -86,6 +97,7 @@ async function profesorLibreEnHora(userId, horaStr, fechaISO) {
 
 function leerAlumnosEnBloque(contacto, email, bloque) {
   const campoKey = `tea_alumnos_${bloque}`;
+  // Para profesores usamos key (endpoint search/duplicate sí devuelve key)
   const campoVal = contacto?.customFields?.find(f => f.key === campoKey)?.value;
   if (campoVal !== undefined && campoVal !== null && campoVal !== '') return parseInt(campoVal, 10) || 0;
   return ALUMNOS_INICIALES[email]?.[bloque] ?? 0;
@@ -94,6 +106,7 @@ function leerAlumnosEnBloque(contacto, email, bloque) {
 function calcularProgreso(fechaInicio) {
   if (!fechaInicio) return { semana: 1, fase: 1 };
   const inicio = new Date(fechaInicio);
+  if (isNaN(inicio)) return { semana: 1, fase: 1 };
   const hoy    = new Date();
   const dias   = Math.floor((hoy - inicio) / (1000 * 60 * 60 * 24));
   const semana = Math.max(1, Math.min(26, Math.floor(dias / 7) + 1));
@@ -132,9 +145,10 @@ module.exports = async function handler(req, res) {
         const validPass  = storedPass ? storedPass === password : phone === password;
         if (!validPass) return send(res, 401, { ok: false, error: 'WRONG_PASS' });
 
-        const cf          = (key) => contact.customFields?.find(f => f.key === key)?.value || '';
-        const yaAsignado  = cf('tea_horario_asignado');
-        const { semana, fase } = calcularProgreso(cf('tea_fecha_inicio'));
+        // login usa search/duplicate que devuelve keys — OK
+        const cfKey      = (key) => contact.customFields?.find(f => f.key === key)?.value || '';
+        const yaAsignado = cfKey('tea_horario_asignado');
+        const { semana, fase } = calcularProgreso(cfKey('tea_fecha_inicio'));
 
         return send(res, 200, {
           ok: true,
@@ -144,10 +158,10 @@ module.exports = async function handler(req, res) {
             email:      contact.email,
             phone:      contact.phone || '',
             yaAsignado: !!yaAsignado,
-            bloque:     cf('tea_bloque'),
-            hora:       cf('tea_hora'),
-            profesor:   cf('tea_profesor_asignado'),
-            teacherId:  cf('teacher_id'),
+            bloque:     cfKey('tea_bloque'),
+            hora:       cfKey('tea_hora'),
+            profesor:   cfKey('tea_profesor_asignado'),
+            teacherId:  cfKey('teacher_id'),
             semana,
             fase,
           },
@@ -202,8 +216,8 @@ module.exports = async function handler(req, res) {
         }
 
         const horarioStr = JSON.stringify({ bloque, hora, profesor: profesorNombre, profesorId: profesorContactoId });
+        const hoy        = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
 
-        // 1. Actualizar contacto del estudiante
         await funnelup(`/contacts/${studentId}`, {
           method: 'PUT',
           body: JSON.stringify({
@@ -218,7 +232,6 @@ module.exports = async function handler(req, res) {
           }),
         });
 
-        // 2. Asignar profesor como responsable
         if (profesorUserId) {
           await funnelup(`/contacts/${studentId}`, {
             method: 'PUT',
@@ -226,7 +239,6 @@ module.exports = async function handler(req, res) {
           });
         }
 
-        // 3. Incrementar contador del profesor usando su contactId directamente
         if (profesorContactoId && bloque) {
           try {
             const profData    = await funnelup(`/contacts/${profesorContactoId}`);
@@ -241,7 +253,7 @@ module.exports = async function handler(req, res) {
                 }),
               });
             }
-          } catch(e) { console.error('Error incrementando contador:', e.message); }
+          } catch(e) { console.error('Error contador:', e.message); }
         }
 
         return send(res, 200, { ok: true, mensaje: 'Asignación completada' });
@@ -256,12 +268,13 @@ module.exports = async function handler(req, res) {
         const contact = data?.contact;
         if (!contact) return send(res, 404, { ok: false, error: 'Estudiante no encontrado' });
 
-        const cf = (key) => contact.customFields?.find(f => f.key === key)?.value || '';
-        const { semana, fase } = calcularProgreso(cf('tea_fecha_inicio'));
+        // Este endpoint devuelve IDs en lugar de keys — usamos FIELD_IDS
+        const cfId = (nombre) => cf(contact, nombre);
+        const { semana, fase } = calcularProgreso(cfId('tea_fecha_inicio'));
 
-        // Buscar teléfono del profesor asignado
+        // Teléfono del profesor
         let profesorTelefono = '';
-        const teacherId = cf('teacher_id');
+        const teacherId = cfId('teacher_id');
         if (teacherId) {
           try {
             const profMatch = PROFESORES.find(p => p.userId === teacherId);
@@ -277,9 +290,9 @@ module.exports = async function handler(req, res) {
           student: {
             nombre:           `${contact.firstName} ${contact.lastName}`.trim(),
             email:            contact.email,
-            bloque:           cf('tea_bloque'),
-            hora:             cf('tea_hora'),
-            profesor:         cf('tea_profesor_asignado'),
+            bloque:           cfId('tea_bloque'),
+            hora:             cfId('tea_hora'),
+            profesor:         cfId('tea_profesor_asignado'),
             teacherId,
             profesorTelefono,
             semana,
@@ -300,16 +313,15 @@ module.exports = async function handler(req, res) {
       }
 
       case 'debug_contacto': {
-      const { studentId } = req.query;
-      if (!studentId) return send(res, 400, { ok: false, error: 'studentId requerido' });
-      const data = await funnelup(`/contacts/${studentId}`);
-      return send(res, 200, { ok: true, raw: data });
-    }
+        const { studentId } = req.query;
+        if (!studentId) return send(res, 400, { ok: false, error: 'studentId requerido' });
+        const data = await funnelup(`/contacts/${studentId}`);
+        return send(res, 200, { ok: true, raw: data });
+      }
 
       default:
         return send(res, 400, { ok: false, error: 'Acción no reconocida' });
     }
-    
   } catch(err) {
     console.error(err);
     return send(res, 500, { ok: false, error: err.message });
