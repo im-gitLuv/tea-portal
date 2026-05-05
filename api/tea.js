@@ -213,6 +213,7 @@ module.exports = async function handler(req, res) {
               { key: 'tea_bloque',            field_value: bloque         },
               { key: 'tea_hora',              field_value: hora           },
               { key: 'teacher_id',            field_value: profesorUserId },
+              { key: 'tea_fecha_inicio',      field_value: hoy            },
             ],
           }),
         });
@@ -298,9 +299,17 @@ module.exports = async function handler(req, res) {
         return send(res, 200, { ok: true, raw: data });
       }
 
+      case 'debug_contacto': {
+      const { studentId } = req.query;
+      if (!studentId) return send(res, 400, { ok: false, error: 'studentId requerido' });
+      const data = await funnelup(`/contacts/${studentId}`);
+      return send(res, 200, { ok: true, raw: data });
+    }
+
       default:
         return send(res, 400, { ok: false, error: 'Acción no reconocida' });
     }
+    
   } catch(err) {
     console.error(err);
     return send(res, 500, { ok: false, error: err.message });
