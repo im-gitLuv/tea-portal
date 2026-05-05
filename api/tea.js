@@ -259,11 +259,15 @@ module.exports = async function handler(req, res) {
         const { userId, fecha } = req.query;
         if (!userId || !fecha) return send(res, 400, { ok: false, error: 'userId y fecha requeridos' });
 
+        // Construir timestamps del día
         const fechaObj = new Date(fecha);
         const start    = new Date(fechaObj); start.setHours(0,0,0,0);
         const end      = new Date(fechaObj); end.setHours(23,59,59,999);
 
-        const data = await funnelup(`/calendars/events?locationId=${LOCATION_ID}&userId=${userId}&startTime=${start.getTime()}&endTime=${end.getTime()}`);
+        // Probar endpoint de free slots
+        const data = await funnelup(
+          `/calendars/free-slots?locationId=${LOCATION_ID}&userId=${userId}&startDate=${start.getTime()}&endDate=${end.getTime()}&slotDuration=45`
+        );
         return send(res, 200, { ok: true, raw: data });
       }
 
