@@ -14,6 +14,18 @@ const PROFESORES = [
   { nombre: 'Nathaly Regardiz',   userId: 'DPeRW5cYIErHZ6AXOmf7', email: 'janathaly16@gmail.com'          },
 ];
 
+// Contadores iniciales basados en estudiantes actuales
+// Se actualizan en el contacto del profesor como custom fields
+// tea_alumnos_manana / tea_alumnos_tarde / tea_alumnos_noche
+const ALUMNOS_INICIALES = {
+  'gladismarguzman@gmail.com':      { manana: 0, tarde: 1, noche: 2 },
+  'davidsecundaria20@gmail.com':    { manana: 0, tarde: 0, noche: 0 },
+  'isabellarodriguez.am@gmail.com': { manana: 0, tarde: 0, noche: 0 },
+  'ferrerjeffry9@gmail.com':        { manana: 0, tarde: 2, noche: 1 },
+  'milidelvalle2000@gmail.com':     { manana: 0, tarde: 0, noche: 3 },
+  'janathaly16@gmail.com':          { manana: 0, tarde: 0, noche: 0 },
+};
+
 const MAX_ALUMNOS_POR_BLOQUE = 3;
 
 const BLOQUES = {
@@ -64,60 +76,53 @@ function parseHora(horaStr) {
   return h + (m / 60);
 }
 
+function horaABloque(horaNum) {
+  if (horaNum >= 8  && horaNum < 11) return 'manana';
+  if (horaNum >= 13 && horaNum < 16) return 'tarde';
+  if (horaNum >= 17 && horaNum < 21) return 'noche';
+  return null;
+}
+
+// Verifica si el profesor tiene cualquier evento en la hora dada
+// Si hay cualquier evento → ocupado → no aparece
 async function profesorLibreEnHora(userId, horaStr, fechaISO) {
   try {
-    const fecha    = new Date(fechaISO);
-    const startDay = new Date(fecha); startDay.setHours(0, 0, 0, 0);
-    const endDay   = new Date(fecha); endDay.setHours(23, 59, 59, 999);
+    const fechaObj = new Date(fechaISO);
+    const start    = new Date(fechaObj); start.setHours(0, 0, 0, 0);
+    const end      = new Date(fechaObj); end.setHours(23, 59, 59, 999);
 
-    const data    = await funnelup(`/calendars/events?locationId=${LOCATION_ID}&userId=${userId}&startTime=${startDay.getTime()}&endTime=${endDay.getTime()}`);
-    const eventos = data?.events || data?.data || [];
+    const data    = await funnelup(`/calendars/blocked-slots?locationId=${LOCATION_ID}&userId=${userId}&startTime=${start.getTime()}&endTime=${end.getTime()}`);
+    const eventos = data?.events || [];
     const horaNum = parseHora(horaStr);
+    const slotFin = horaNum + 0.75; // 45 minutos
 
     const ocupado = eventos.some(ev => {
-      const evStart = new Date(ev.startTime).getHours() + new Date(ev.startTime).getMinutes() / 60;
-      const evEnd   = new Date(ev.endTime).getHours()   + new Date(ev.endTime).getMinutes()   / 60;
-      return evStart < (horaNum + 0.75) && evEnd > horaNum;
+      const evStart = new Date(ev.startTime);
+      const evEnd   = new Date(ev.endTime);
+      const evH     = evStart.getHours() + evStart.getMinutes() / 60;
+      const evHFin  = evEnd.getHours()   + evEnd.getMinutes()   / 60;
+      return evH < slotFin && evHFin > horaNum;
     });
 
     return !ocupado;
   } catch (e) {
-    console.error(`Error calendario ${userId}:`, e.message);
+    console.error(`Error blocked-slots ${userId}:`, e.message);
     return true;
   }
 }
 
-async function contarAlumnosTEA(userId, bloque) {
-  try {
-    const bloqueDef = BLOQUES[bloque];
-    if (!bloqueDef) return 0;
+// Lee el contador de alumnos del custom field del contacto del profesor
+// Si no existe el campo aún, usa el valor inicial hardcodeado
+async function leerAlumnosEnBloque(contacto, email, bloque) {
+  const campoKey = `tea_alumnos_${bloque}`;
+  const campoVal = contacto?.customFields?.find(f => f.key === campoKey)?.value;
 
-    const hoy    = new Date();
-    const lunes  = new Date(hoy);
-    lunes.setDate(hoy.getDate() - ((hoy.getDay() + 6) % 7));
-    lunes.setHours(0, 0, 0, 0);
-    const viernes = new Date(lunes);
-    viernes.setDate(lunes.getDate() + 4);
-    viernes.setHours(23, 59, 59, 999);
-
-    const data    = await funnelup(`/calendars/events?locationId=${LOCATION_ID}&userId=${userId}&startTime=${lunes.getTime()}&endTime=${viernes.getTime()}`);
-    const eventos = data?.events || data?.data || [];
-
-    const conteosPorHora = {};
-    eventos.forEach(ev => {
-      const evStart = new Date(ev.startTime);
-      const horaEv  = evStart.getHours();
-      if (horaEv >= bloqueDef.inicio && horaEv < bloqueDef.fin) {
-        const key = `${evStart.toDateString()}-${horaEv}`;
-        conteosPorHora[key] = (conteosPorHora[key] || 0) + 1;
-      }
-    });
-
-    return Math.max(0, ...Object.values(conteosPorHora), 0);
-  } catch (e) {
-    console.error(`Error contando alumnos ${userId}:`, e.message);
-    return 0;
+  if (campoVal !== undefined && campoVal !== null && campoVal !== '') {
+    return parseInt(campoVal, 10) || 0;
   }
+
+  // Fallback a valor inicial si el campo aún no existe en FunnelUp
+  return ALUMNOS_INICIALES[email]?.[bloque] ?? 0;
 }
 
 // ─── router ──────────────────────────────────────────────────────────────────
@@ -131,6 +136,7 @@ module.exports = async function handler(req, res) {
   try {
     switch (action) {
 
+      // ── 1. LOGIN ─────────────────────────────────────────────────────────
       case 'login': {
         const { email, password } = req.body || {};
         if (!email) return send(res, 400, { ok: false, error: 'Email requerido' });
@@ -163,28 +169,31 @@ module.exports = async function handler(req, res) {
         });
       }
 
+      // ── 2. PROFESORES disponibles para hora y fecha específicas ──────────
       case 'profesores': {
         const { hora, fecha } = req.query;
         if (!hora || !fecha) return send(res, 400, { ok: false, error: 'hora y fecha requeridos' });
 
         const horaNum = parseHora(hora);
-        let bloque = 'manana';
-        if (horaNum >= 13 && horaNum < 17) bloque = 'tarde';
-        else if (horaNum >= 17) bloque = 'noche';
+        const bloque  = horaABloque(horaNum);
+        if (!bloque) return send(res, 400, { ok: false, error: 'Hora fuera de bloques disponibles' });
 
         const disponibles = [];
 
         await Promise.all(PROFESORES.map(async (prof) => {
           try {
-            const [contactData, libre, alumnosActuales] = await Promise.all([
+            const [contactData, libre] = await Promise.all([
               funnelup(`/contacts/search/duplicate?locationId=${LOCATION_ID}&email=${encodeURIComponent(prof.email)}`),
               profesorLibreEnHora(prof.userId, hora, fecha),
-              contarAlumnosTEA(prof.userId, bloque),
             ]);
 
-            if (!libre || alumnosActuales >= MAX_ALUMNOS_POR_BLOQUE) return;
+            if (!libre) return; // tiene evento en esa hora → no disponible
 
-            const contacto = contactData?.contact;
+            const contacto       = contactData?.contact;
+            const alumnosActuales = await leerAlumnosEnBloque(contacto, prof.email, bloque);
+
+            if (alumnosActuales >= MAX_ALUMNOS_POR_BLOQUE) return; // bloque lleno
+
             disponibles.push({
               id:               contacto?.id || prof.userId,
               userId:           prof.userId,
@@ -202,14 +211,15 @@ module.exports = async function handler(req, res) {
         return send(res, 200, { ok: true, profesores: disponibles });
       }
 
+      // ── 3. CONFIRMAR asignación ──────────────────────────────────────────
       case 'asignar': {
-        const { studentId, profesorContactoId, profesorUserId, profesorNombre, bloque, hora } = req.body || {};
+        const { studentId, profesorContactoId, profesorUserId, profesorNombre, profesorEmail, bloque, hora } = req.body || {};
         if (!studentId || !profesorContactoId || !bloque || !hora) {
           return send(res, 400, { ok: false, error: 'Datos incompletos' });
         }
 
+        // 1. Actualizar contacto del estudiante
         const horarioStr = JSON.stringify({ bloque, hora, profesor: profesorNombre, profesorId: profesorContactoId });
-
         await funnelup(`/contacts/${studentId}`, {
           method: 'PUT',
           body: JSON.stringify({
@@ -222,6 +232,7 @@ module.exports = async function handler(req, res) {
           }),
         });
 
+        // 2. Asignar profesor como responsable del contacto
         if (profesorUserId) {
           await funnelup(`/contacts/${studentId}`, {
             method: 'PUT',
@@ -229,9 +240,27 @@ module.exports = async function handler(req, res) {
           });
         }
 
+        // 3. Incrementar contador de alumnos del profesor en ese bloque
+        if (profesorContactoId && bloque) {
+          const profData   = await funnelup(`/contacts/${profesorContactoId}`);
+          const profContact = profData?.contact;
+          const campoKey   = `tea_alumnos_${bloque}`;
+          const actual     = await leerAlumnosEnBloque(profContact, profesorEmail || '', bloque);
+
+          await funnelup(`/contacts/${profesorContactoId}`, {
+            method: 'PUT',
+            body: JSON.stringify({
+              customFields: [
+                { key: campoKey, field_value: String(actual + 1) },
+              ],
+            }),
+          });
+        }
+
         return send(res, 200, { ok: true, mensaje: 'Asignación completada' });
       }
 
+      // ── 4. DASHBOARD ─────────────────────────────────────────────────────
       case 'dashboard': {
         const { studentId } = req.query;
         if (!studentId) return send(res, 400, { ok: false, error: 'studentId requerido' });
@@ -254,7 +283,7 @@ module.exports = async function handler(req, res) {
         });
       }
 
-      // Endpoint de debug para ver el calendario raw de un profesor
+      // ── 5. DEBUG ─────────────────────────────────────────────────────────
       case 'debug_calendario': {
         const { userId, fecha } = req.query;
         if (!userId || !fecha) return send(res, 400, { ok: false, error: 'userId y fecha requeridos' });
@@ -263,19 +292,8 @@ module.exports = async function handler(req, res) {
         const start    = new Date(fechaObj); start.setHours(0,0,0,0);
         const end      = new Date(fechaObj); end.setHours(23,59,59,999);
 
-        // Probar los tres endpoints posibles en paralelo
-        const [r1, r2, r3] = await Promise.allSettled([
-          funnelup(`/calendars/availability?locationId=${LOCATION_ID}&userId=${userId}&startTime=${start.getTime()}&endTime=${end.getTime()}`),
-          funnelup(`/users/${userId}/availability?locationId=${LOCATION_ID}&startTime=${start.getTime()}&endTime=${end.getTime()}`),
-          funnelup(`/calendars/blocked-slots?locationId=${LOCATION_ID}&userId=${userId}&startTime=${start.getTime()}&endTime=${end.getTime()}`),
-        ]);
-
-        return send(res, 200, {
-          ok: true,
-          availability:    r1.status === 'fulfilled' ? r1.value : r1.reason?.message,
-          user_avail:      r2.status === 'fulfilled' ? r2.value : r2.reason?.message,
-          blocked_slots:   r3.status === 'fulfilled' ? r3.value : r3.reason?.message,
-        });
+        const data = await funnelup(`/calendars/blocked-slots?locationId=${LOCATION_ID}&userId=${userId}&startTime=${start.getTime()}&endTime=${end.getTime()}`);
+        return send(res, 200, { ok: true, raw: data });
       }
 
       default:
