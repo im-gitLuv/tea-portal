@@ -9,7 +9,6 @@
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Work Sans',sans-serif;background:#f4f6fb;color:#1a1a2e;min-height:100vh}
   :root{--azul:#283A97;--azul-oscuro:#0F145B;--rojo:#EA0029;--borde:#e2e6f0;--suave:#6b7280;--radio:12px;--sombra:0 2px 12px rgba(40,58,151,0.08)}
-
   .topbar{background:#0F145B;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
   .topbar-logo{font-size:13px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase}
   .topbar-logo span{color:#EA0029}
@@ -18,47 +17,37 @@
   .topbar-badge{background:#EA0029;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase}
   .btn-logout{background:none;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);font-size:11px;font-weight:600;font-family:'Work Sans',sans-serif;padding:5px 12px;border-radius:6px;cursor:pointer;transition:all .2s}
   .btn-logout:hover{border-color:#fff;color:#fff}
-
   .inner{max-width:760px;margin:0 auto;padding:28px 24px}
-
   .banner{background:#e8f4ea;border:1px solid #b5d9bc;border-radius:var(--radio);padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:24px}
   .banner-icon{width:36px;height:36px;background:#2a7a3a;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0}
   .banner-txt{font-size:13px;font-weight:600;color:#1a5c28;line-height:1.6}
-
   .tabs{display:flex;border-bottom:2px solid var(--borde);margin-bottom:24px}
   .tab{padding:11px 20px;font-size:13px;font-weight:600;color:var(--suave);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;background:none;border-top:none;border-left:none;border-right:none;font-family:'Work Sans',sans-serif;transition:all .2s}
   .tab.activo{color:#EA0029;border-bottom-color:#EA0029}
   .tab:hover{color:#0F145B}
   .tab-content{display:none}
   .tab-content.activo{display:block}
-
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
   @media(max-width:600px){.grid2{grid-template-columns:1fr}}
   .card{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);padding:20px;box-shadow:var(--sombra)}
   .card-header{display:flex;align-items:center;gap:10px;margin-bottom:16px}
   .card-icon{width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0}
-  .ci-azul{background:#eef1fb}
-  .ci-rojo{background:#fde8e8}
-  .ci-verde{background:#e8f4ea}
+  .ci-azul{background:#eef1fb}.ci-rojo{background:#fde8e8}.ci-verde{background:#e8f4ea}
   .card-titulo{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#0F145B}
   .info-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
   .info-row:last-child{border-bottom:none}
   .info-label{color:var(--suave)}
   .info-val{font-weight:600;color:#0F145B}
   .info-tag{background:var(--azul);color:#fff;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px}
-
   .prof-box{display:flex;align-items:center;gap:14px;background:#f4f6fb;border-radius:10px;padding:14px;margin-bottom:14px}
   .prof-ava{width:46px;height:46px;border-radius:50%;background:var(--azul);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0}
   .prof-nombre{font-size:15px;font-weight:700;color:#0F145B}
   .prof-rol{font-size:12px;color:var(--suave)}
-  .btn-wa{width:100%;margin-top:12px;background:#f0f3ff;border:1px solid var(--azul);color:var(--azul);border-radius:9px;padding:9px;font-size:12px;font-weight:700;cursor:pointer;font-family:'Work Sans',sans-serif;transition:background .2s}
-  .btn-wa:hover{background:#dce3ff}
-
+  .btn-wa{width:100%;margin-top:12px;background:#25D366;border:none;color:#fff;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Work Sans',sans-serif;transition:background .2s;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+  .btn-wa:hover{background:#1da851}
   .prog-bar{background:#f0f0f0;border-radius:20px;height:9px;margin:14px 0 6px;overflow:hidden}
-  .prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#283A97,#4789C8)}
+  .prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#283A97,#4789C8);transition:width .5s ease}
   .prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--suave)}
-
-  /* BIBLIOTECA */
   .lib-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
   @media(max-width:600px){.lib-grid{grid-template-columns:1fr 1fr}}
   .lib-card{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:16px 14px;cursor:pointer;transition:all .2s}
@@ -67,19 +56,19 @@
   .lib-titulo{font-size:12px;font-weight:700;color:#0F145B;margin-bottom:3px;line-height:1.4}
   .lib-meta{font-size:11px;color:#aaa}
   .lib-tipo{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;margin-top:9px}
-  .lt-v{background:#fde8e8;color:#a32d2d}
-  .lt-d{background:#eef1fb;color:#185fa5}
-  .lt-a{background:#e8f4ea;color:#2a7a3a}
-
-  /* FASES */
+  .lt-v{background:#fde8e8;color:#a32d2d}.lt-d{background:#eef1fb;color:#185fa5}.lt-a{background:#e8f4ea;color:#2a7a3a}
   .fase-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
   .fase-row:last-child{border-bottom:none}
   .fase-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
-  .fd-activo{background:var(--azul)}
-  .fd-pending{background:#ddd}
+  .fd-hecho{background:#2a7a3a}.fd-activo{background:var(--azul)}.fd-pending{background:#ddd}
   .fase-nombre{flex:1;font-weight:500;color:#0F145B}
   .fase-sems{color:var(--suave);font-size:12px}
-  .fase-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#eef1fb;color:#185fa5}
+  .fase-badge-activo{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#eef1fb;color:#185fa5}
+  .fase-badge-hecho{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#e8f4ea;color:#2a7a3a}
+  .loader-full{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:16px}
+  .spinner{width:36px;height:36px;border:3px solid var(--borde);border-top-color:var(--azul);border-radius:50%;animation:spin .7s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .loader-txt{font-size:13px;color:var(--suave)}
 </style>
 </head>
 <body>
@@ -92,10 +81,16 @@
   </div>
 </div>
 
+<div id="loading" class="loader-full">
+  <div class="spinner"></div>
+  <span class="loader-txt">Cargando tu espacio...</span>
+</div>
+
+<div id="main-content" style="display:none">
 <div class="inner">
   <div id="banner" class="banner" style="display:none">
     <div class="banner-icon">✓</div>
-    <div class="banner-txt">¡Inscripción confirmada! Tu profesor y horario han sido registrados en el sistema. Recibirás un mensaje por WhatsApp con los detalles de tu primera clase.</div>
+    <div class="banner-txt">¡Inscripción confirmada! Tu profesor y horario han sido registrados. Recibirás un mensaje por WhatsApp con los detalles de tu primera clase.</div>
   </div>
 
   <div class="tabs">
@@ -104,14 +99,10 @@
     <button class="tab" onclick="switchTab(this,'tab-progreso')">Mi Progreso</button>
   </div>
 
-  <!-- TAB INICIO -->
   <div id="tab-inicio" class="tab-content activo">
     <div class="grid2">
       <div class="card">
-        <div class="card-header">
-          <div class="card-icon ci-azul">📅</div>
-          <div class="card-titulo">Mi Horario Semanal</div>
-        </div>
+        <div class="card-header"><div class="card-icon ci-azul">📅</div><div class="card-titulo">Mi Horario Semanal</div></div>
         <div class="info-row"><span class="info-label">Días</span><span class="info-val">Lun – Vie</span></div>
         <div class="info-row"><span class="info-label">Hora</span><span class="info-val" id="d-hora">—</span></div>
         <div class="info-row"><span class="info-label">Bloque</span><span class="info-val" id="d-bloque">—</span></div>
@@ -119,32 +110,22 @@
         <div class="info-row"><span class="info-label">Plataforma</span><span class="info-val">Google Meet</span></div>
       </div>
       <div class="card">
-        <div class="card-header">
-          <div class="card-icon ci-rojo">👩‍🏫</div>
-          <div class="card-titulo">Mi Profesor</div>
-        </div>
+        <div class="card-header"><div class="card-icon ci-rojo">👩‍🏫</div><div class="card-titulo">Mi Profesor</div></div>
         <div class="prof-box">
           <div class="prof-ava" id="d-prof-ava">?</div>
-          <div>
-            <div class="prof-nombre" id="d-prof-nombre">—</div>
-            <div class="prof-rol">Mentor TEA</div>
-          </div>
+          <div><div class="prof-nombre" id="d-prof-nombre">—</div><div class="prof-rol">Mentor TEA</div></div>
         </div>
-        <div id="d-prof-bio" style="font-size:12px;color:var(--suave);line-height:1.6"></div>
-        <button class="btn-wa">📱 Contactar por WhatsApp</button>
+        <div id="d-prof-bio" style="font-size:12px;color:var(--suave);line-height:1.6;margin-bottom:4px"></div>
+        <a id="btn-wa" class="btn-wa" href="#" target="_blank">📱 Contactar por WhatsApp</a>
       </div>
     </div>
     <div class="card">
-      <div class="card-header">
-        <div class="card-icon ci-verde">📊</div>
-        <div class="card-titulo">Tu Progreso — Fase 1: El Despertar</div>
-      </div>
-      <div class="prog-bar"><div class="prog-fill" style="width:12%"></div></div>
-      <div class="prog-labels"><span>Semana 1 de 26</span><span>12% completado</span></div>
+      <div class="card-header"><div class="card-icon ci-verde">📊</div><div class="card-titulo" id="prog-titulo">Tu Progreso — Fase 1: El Despertar</div></div>
+      <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:4%"></div></div>
+      <div class="prog-labels"><span id="prog-semana">Semana 1 de 26</span><span id="prog-pct">4% completado</span></div>
     </div>
   </div>
 
-  <!-- TAB BIBLIOTECA -->
   <div id="tab-biblioteca" class="tab-content">
     <div class="lib-grid">
       <div class="lib-card"><div class="lib-icon">🎬</div><div class="lib-titulo">Sonidos que no existen en español</div><div class="lib-meta">Fase 1 · 18 min</div><span class="lib-tipo lt-v">Video</span></div>
@@ -156,56 +137,115 @@
     </div>
   </div>
 
-  <!-- TAB PROGRESO -->
   <div id="tab-progreso" class="tab-content">
     <div class="card">
-      <div class="card-header">
-        <div class="card-icon ci-azul">🗓️</div>
-        <div class="card-titulo">Las 4 Fases del Programa</div>
-      </div>
-      <div class="fase-row"><div class="fase-dot fd-activo"></div><span class="fase-nombre">Fase 1 — El Despertar</span><span class="fase-sems">Sem. 1–6</span><span class="fase-badge">En curso</span></div>
-      <div class="fase-row"><div class="fase-dot fd-pending"></div><span class="fase-nombre">Fase 2 — El Desafío</span><span class="fase-sems">Sem. 7–16</span><span style="font-size:11px;color:#aaa">Próximamente</span></div>
-      <div class="fase-row"><div class="fase-dot fd-pending"></div><span class="fase-nombre">Fase 3 — El Flujo</span><span class="fase-sems">Sem. 17–22</span><span style="font-size:11px;color:#aaa">Próximamente</span></div>
-      <div class="fase-row"><div class="fase-dot fd-pending"></div><span class="fase-nombre">Fase 4 — El Dominio</span><span class="fase-sems">Sem. 23–26</span><span style="font-size:11px;color:#aaa">Próximamente</span></div>
+      <div class="card-header"><div class="card-icon ci-azul">🗓️</div><div class="card-titulo">Las 4 Fases del Programa</div></div>
+      <div id="fases-container"></div>
     </div>
   </div>
 </div>
+</div>
 
 <script>
-  var BLOQUE_LABEL={manana:'🌅 Mañana', tarde:'☀️ Tarde', noche:'🌙 Noche'};
+  var API = 'https://tea-portal-bice.vercel.app/api/tea';
+  var BLOQUE_LABEL = {manana:'🌅 Mañana', tarde:'☀️ Tarde', noche:'🌙 Noche'};
+  var FASES = [
+    {nombre:'Fase 1 — El Despertar', sems:'Sem. 1–6',   min:1,  max:6  },
+    {nombre:'Fase 2 — El Desafío',   sems:'Sem. 7–16',  min:7,  max:16 },
+    {nombre:'Fase 3 — El Flujo',     sems:'Sem. 17–22', min:17, max:22 },
+    {nombre:'Fase 4 — El Dominio',   sems:'Sem. 23–26', min:23, max:26 },
+  ];
+  var FASE_NOMBRES = ['El Despertar','El Desafío','El Flujo','El Dominio'];
 
-  // Cargar estudiante
-  var raw=sessionStorage.getItem('tea_student');
-  if(!raw){ window.location.href='index.html'; }
-  var student=JSON.parse(raw);
+  // Verificar sesión
+  var raw = sessionStorage.getItem('tea_student');
+  if (!raw) { window.location.href='index.html'; }
+  var sessionStudent = JSON.parse(raw);
 
-  // Mostrar banner si recién se inscribió
-  if(sessionStorage.getItem('tea_recien_asignado')==='1'){
+  // Mostrar banner si recién asignado
+  if (sessionStorage.getItem('tea_recien_asignado')==='1') {
     document.getElementById('banner').style.display='flex';
     sessionStorage.removeItem('tea_recien_asignado');
   }
 
-  // Rellenar datos
-  document.getElementById('tb-nombre').textContent = student.nombre.split(' ')[0];
-  document.getElementById('d-hora').textContent    = student.hora   || '—';
-  document.getElementById('d-bloque').textContent  = BLOQUE_LABEL[student.bloque] || student.bloque || '—';
+  // Cargar datos frescos del CRM
+  async function cargarDashboard() {
+    try {
+      var res  = await fetch(API+'?action=dashboard&studentId='+sessionStudent.id);
+      var data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      renderDashboard(data.student);
+    } catch(e) {
+      // Si falla la recarga, usar datos de sesión
+      renderDashboard(sessionStudent);
+    } finally {
+      document.getElementById('loading').style.display='none';
+      document.getElementById('main-content').style.display='block';
+    }
+  }
 
-  var profNombre = student.profesor || '—';
-  var iniciales  = profNombre.split(' ').map(function(p){return p[0]}).join('').slice(0,2).toUpperCase();
-  document.getElementById('d-prof-ava').textContent    = iniciales;
-  document.getElementById('d-prof-nombre').textContent = profNombre;
+  function renderDashboard(s) {
+    var semana = s.semana || 1;
+    var fase   = s.fase   || 1;
+    var pct    = Math.round((semana / 26) * 100);
 
-  function switchTab(btn,tabId){
+    // Topbar
+    document.getElementById('tb-nombre').textContent = (s.nombre||'').split(' ')[0];
+    document.getElementById('tb-semana').textContent = 'Semana '+semana;
+
+    // Horario
+    document.getElementById('d-hora').textContent   = s.hora   || '—';
+    document.getElementById('d-bloque').textContent = BLOQUE_LABEL[s.bloque] || s.bloque || '—';
+
+    // Profesor
+    var profNombre = s.profesor || '—';
+    var iniciales  = profNombre.split(' ').map(function(p){return p[0]||''}).join('').slice(0,2).toUpperCase();
+    document.getElementById('d-prof-ava').textContent    = iniciales;
+    document.getElementById('d-prof-nombre').textContent = profNombre;
+
+    // Botón WhatsApp dinámico
+    var wa = document.getElementById('btn-wa');
+    if (s.profesorTelefono) {
+      var msg = encodeURIComponent('Hola, soy '+s.nombre+', estudiante de Talk English Academy. Mi horario es '+s.hora+' ('+s.bloque+'). ¡Quedo atento!');
+      wa.href = 'https://wa.me/'+s.profesorTelefono+'?text='+msg;
+    } else {
+      wa.href = 'https://wa.me/16892809986'; // número general TEA
+    }
+
+    // Progreso
+    document.getElementById('prog-titulo').textContent = 'Tu Progreso — Fase '+fase+': '+FASE_NOMBRES[fase-1];
+    document.getElementById('prog-fill').style.width   = pct+'%';
+    document.getElementById('prog-semana').textContent = 'Semana '+semana+' de 26';
+    document.getElementById('prog-pct').textContent    = pct+'% completado';
+
+    // Fases
+    var fasesHtml = '';
+    FASES.forEach(function(f, i) {
+      var faseNum = i+1;
+      var dotClass, badge;
+      if (faseNum < fase) {
+        dotClass='fd-hecho'; badge='<span class="fase-badge-hecho">Completada ✓</span>';
+      } else if (faseNum === fase) {
+        dotClass='fd-activo'; badge='<span class="fase-badge-activo">En curso — Sem. '+semana+'</span>';
+      } else {
+        dotClass='fd-pending'; badge='<span style="font-size:11px;color:#aaa">Próximamente</span>';
+      }
+      fasesHtml += '<div class="fase-row"><div class="fase-dot '+dotClass+'"></div><span class="fase-nombre">'+f.nombre+'</span><span class="fase-sems">'+f.sems+'</span>'+badge+'</div>';
+    });
+    document.getElementById('fases-container').innerHTML = fasesHtml;
+  }
+
+  function switchTab(btn, tabId) {
     document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('activo')});
     document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('activo')});
     btn.classList.add('activo');
     document.getElementById(tabId).classList.add('activo');
   }
 
-  function logout(){
-    sessionStorage.clear();
-    window.location.href='index.html';
-  }
+  function logout() { sessionStorage.clear(); window.location.href='index.html'; }
+
+  // Arrancar
+  cargarDashboard();
 </script>
 </body>
 </html>
