@@ -20,9 +20,9 @@ const MAX_ALUMNOS_POR_BLOQUE = 3;
 
 function headers(extra = {}) {
   return {
-    'Authorization': `Bearer ${API_KEY}`,
-    'Content-Type':  'application/json',
-    'Version':       '2021-07-28',
+    'Private-Integration-Token': API_KEY,
+    'Content-Type':              'application/json',
+    'Version':                   '2021-07-28',
     ...extra,
   };
 }
