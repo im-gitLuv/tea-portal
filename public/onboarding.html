@@ -168,9 +168,17 @@
   function irA(pagina) {
     window.location.href = esFunnelUp ? '/studentsarea/' + pagina : pagina + '.html';
   }
+  
+  function irAlLogin() {
+    if (esFunnelUp) {
+      window.location.href = '/studentsarea/login';
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
 
   var raw = sessionStorage.getItem('tea_student');
-  if (!raw) { irA('login'); }
+  if (!raw) { irAlLogin(); }
   var state = { student: JSON.parse(raw || '{}'), bloque: null, hora: null, profesor: null };
 
   // Si ya tiene profesor asignado, redirigir al dashboard

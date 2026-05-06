@@ -163,8 +163,16 @@
     window.location.href = esFunnelUp ? '/studentsarea/' + pagina : pagina + '.html';
   }
 
+  function irAlLogin() {
+    if (esFunnelUp) {
+      window.location.href = '/studentsarea/login';
+    } else {
+      window.location.href = 'index.html';
+    }
+  }
+
   var raw = sessionStorage.getItem('tea_student');
-  if (!raw) { irA('login'); }
+  if (!raw) { irAlLogin(); }
   var sessionStudent = JSON.parse(raw || '{}');
 
   if (sessionStorage.getItem('tea_recien_asignado') === '1') {
@@ -239,7 +247,7 @@
 
   function logout() {
     sessionStorage.clear();
-    irA('login');
+    if (!raw) { irAlLogin(); }
   }
 
   cargarDashboard();
