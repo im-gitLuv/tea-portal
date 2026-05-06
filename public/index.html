@@ -220,6 +220,8 @@
   // ── FORGOT: PASO 2 — Verificar código ───────────────────────────────────
   async function verificarCodigo() {
     var codigo = getCodigo();
+    console.log('codigo a enviar:', codigo, 'length:', codigo.length); // ← agregar
+    console.log('contactId:', resetData.contactId); // ← agregar
     var err    = document.getElementById('code-err');
     var btn    = document.getElementById('btn-verify');
     err.style.display = 'none';

@@ -271,7 +271,8 @@ module.exports = async function handler(req, res) {
       // ── FORGOT PASSWORD — paso 2: verificar código ───────────────────────
       case 'forgot_verify': {
         const { contactId, codigo } = req.body || {};
-        if (!contactId || !codigo) return send(res, 400, { ok: false, error: 'Datos incompletos' });
+        console.log('verify recibido:', { contactId, codigo, tipos: { cId: typeof contactId, cod: typeof codigo } });
+        if (!contactId || !codigo) return send(res, 400, { ok: false, error: 'Datos incompletos', recibido: { contactId, codigo } });
 
         const data    = await funnelup(`/contacts/${contactId}`);
         const contact = data?.contact;
