@@ -36,6 +36,7 @@ const FIELD_IDS = {
   tea_fecha_inicio:      '1YAuS54toIr124DvkjOY',
   tea_reset_code:        'O6DW7jSKAejRUg7NbKth',
   tea_reset_expira:      'PFXIAbQHhzPmn4k3MNYz',
+  tea_password:          'GMhgfdHH2Xx646IF5QVo',
 };
 
 function cfById(contact, nombre) {
@@ -164,13 +165,13 @@ module.exports = async function handler(req, res) {
         const tags = (contact.tags || []).map(t => t.toLowerCase());
         if (!tags.includes('tea-student')) return send(res, 401, { ok: false, error: 'NO_TAG' });
 
-        const storedPass = contact.customFields?.find(f => f.key === 'tea_password')?.value;
+        const storedPass = contact.customFields?.find(f => f.key === 'tea_password' || f.id === 'GMhgfdHH2Xx646IF5QVo')?.value;
         const phone      = (contact.phone || '').replace(/\D/g, '').slice(-4);
         const validPass  = storedPass ? storedPass === password : phone === password;
         if (!validPass) return send(res, 401, { ok: false, error: 'WRONG_PASS' });
 
         const cfKey      = (key) => contact.customFields?.find(f => f.key === key)?.value || '';
-        const yaAsignado = cfKey('tea_horario_asignado');
+        const yaAsignado = cfKey('tea_horario_asignado') || contact.customFields?.find(f => f.id === 'D21J2OhL2lbShnJUFCqm')?.value || '';
         const { semana, fase } = calcularProgreso(cfKey('tea_fecha_inicio'));
 
         return send(res, 200, {
