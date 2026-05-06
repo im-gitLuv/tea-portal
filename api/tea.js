@@ -279,7 +279,18 @@ module.exports = async function handler(req, res) {
 
         const storedCode  = contact.customFields?.find(f => f.key === 'tea_reset_code')?.value;
         const storedExpira = contact.customFields?.find(f => f.key === 'tea_reset_expira')?.value;
-
+        // ← AGREGAR ESTO TEMPORALMENTE
+        return send(res, 200, { 
+          ok: false, 
+          debug: { 
+            codigoRecibido: codigo, 
+            codigoGuardado: storedCode,
+            expira: storedExpira,
+            ahora: Date.now(),
+            expirado: storedExpira ? Date.now() > parseInt(storedExpira) : 'sin valor'
+          }
+        });
+        // ← FIN DEBUG
         if (!storedCode || storedCode !== codigo) {
           return send(res, 400, { ok: false, error: 'INVALID_CODE' });
         }
