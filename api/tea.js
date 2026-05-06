@@ -248,7 +248,7 @@ module.exports = async function handler(req, res) {
               'Content-Type':  'application/json',
             },
             body: JSON.stringify({
-              from:    'Talk English Academy <onboarding@resend.dev>',
+              from: 'Talk English Academy <noreply@mails.talkenglishaca.com>',
               to:      [contact.email],
               subject: 'Tu código de acceso — Talk English Academy',
               html:    emailHtml,
