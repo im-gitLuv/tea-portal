@@ -160,15 +160,19 @@
   var esFunnelUp = window.location.hostname.indexOf('talkenglishaca.com') > -1;
 
   function irA(pagina) {
-    window.location.href = esFunnelUp ? '/studentsarea/' + pagina : pagina + '.html';
+      if (esFunnelUp) {
+        window.location.replace('/studentsarea/' + pagina);
+      } else {
+        window.location.href = pagina + '.html';
+      }
   }
 
   function irAlLogin() {
-    if (esFunnelUp) {
-      window.location.href = '/studentsarea/login';
-    } else {
-      window.location.href = 'index.html';
-    }
+      if (esFunnelUp) {
+        window.location.replace('/studentsarea/login');
+      } else {
+        window.location.href = 'index.html';
+      }
   }
 
   var raw = sessionStorage.getItem('tea_student');
