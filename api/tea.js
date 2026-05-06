@@ -167,10 +167,8 @@ module.exports = async function handler(req, res) {
         const validPass  = storedPass ? storedPass === password : phone === password;
         if (!validPass) return send(res, 401, { ok: false, error: 'WRONG_PASS' });
 
-        const cfKey = (key) => contact.customFields?.find(f => f.key === key)?.value || '';
-        // Verificar yaAsignado tanto por key como por ID directo
-        const yaAsignado = cfKey('tea_horario_asignado') || 
-          contact.customFields?.find(f => f.id === 'D21J2OhL2lbShnJUFCqm')?.value || '';
+        const cfKey      = (key) => contact.customFields?.find(f => f.key === key)?.value || '';
+        const yaAsignado = cfKey('tea_horario_asignado');
         const { semana, fase } = calcularProgreso(cfKey('tea_fecha_inicio'));
 
         return send(res, 200, {
@@ -219,45 +217,53 @@ module.exports = async function handler(req, res) {
           }),
         });
 
-        // Enviar email via FunnelUp (send email action)
-        // Usamos el endpoint de emails de FunnelUp
+        // Enviar email via Resend
         try {
-          await funnelup(`/conversations/messages`, {
-            method: 'POST',
-            body: JSON.stringify({
-              type:        'Email',
-              contactId:   contact.id,
-              locationId:  LOCATION_ID,
-              emailFrom:   'noreply@talkenglishaca.com',
-              emailTo:     contact.email,
-              subject:     'Tu código de acceso — Talk English Academy',
-              html: `
-                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
-                  <div style="background:#0F145B;padding:20px;border-radius:12px 12px 0 0;text-align:center">
-                    <span style="color:#EA0029;font-weight:700;font-size:18px">TALK</span>
-                    <span style="color:#fff;font-weight:700;font-size:18px"> ENGLISH ACADEMY</span>
-                  </div>
-                  <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
-                    <h2 style="color:#0F145B;margin:0 0 16px">Código de verificación</h2>
-                    <p style="color:#6b7280;margin:0 0 24px;line-height:1.6">Hola ${contact.firstName}, usa este código para restablecer tu contraseña. Expira en <strong>15 minutos</strong>.</p>
-                    <div style="background:#f4f6fb;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px">
-                      <span style="font-size:36px;font-weight:700;color:#EA0029;letter-spacing:8px">${codigo}</span>
-                    </div>
-                    <p style="color:#aaa;font-size:12px">Si no solicitaste este código, ignora este mensaje.</p>
-                  </div>
+          const emailHtml = `
+            <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+              <div style="background:#0F145B;padding:20px;border-radius:12px 12px 0 0;text-align:center">
+                <span style="color:#EA0029;font-weight:700;font-size:18px;letter-spacing:1px">TALK</span>
+                <span style="color:#fff;font-weight:700;font-size:18px;letter-spacing:1px"> ENGLISH ACADEMY</span>
+              </div>
+              <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
+                <h2 style="color:#0F145B;margin:0 0 16px">Código de verificación</h2>
+                <p style="color:#6b7280;margin:0 0 24px;line-height:1.6">
+                  Hola ${contact.firstName}, usa este código para restablecer tu contraseña.
+                  Expira en <strong>15 minutos</strong>.
+                </p>
+                <div style="background:#f4f6fb;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px">
+                  <span style="font-size:36px;font-weight:700;color:#EA0029;letter-spacing:8px">${codigo}</span>
                 </div>
-              `,
+                <p style="color:#aaa;font-size:12px;margin:0">
+                  Si no solicitaste este código, ignora este mensaje. Tu cuenta sigue segura.
+                </p>
+              </div>
+            </div>
+          `;
+
+          const resendRes = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+              'Content-Type':  'application/json',
+            },
+            body: JSON.stringify({
+              from:    'Talk English Academy <onboarding@resend.dev>',
+              to:      [contact.email],
+              subject: 'Tu código de acceso — Talk English Academy',
+              html:    emailHtml,
             }),
           });
-          } catch(emailErr) {
-            console.error('Error email:', emailErr.message);
-            return send(res, 200, { 
-              ok: true, 
-              contactId: contact.id, 
-              emailError: emailErr.message,
-              mensaje: 'Código guardado pero email falló' 
-            });
+
+          const resendData = await resendRes.json();
+          if (!resendRes.ok) {
+            console.error('Resend error:', resendRes.status, JSON.stringify(resendData));
+          } else {
+            console.log('Email enviado via Resend:', resendData.id, '→', contact.email);
           }
+        } catch(emailErr) {
+          console.error('Error enviando email:', emailErr.message);
+        }
 
         return send(res, 200, { ok: true, contactId: contact.id, mensaje: 'Código enviado. Revisa tu correo.' });
       }
