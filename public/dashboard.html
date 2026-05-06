@@ -164,7 +164,7 @@
   }
 
   var raw = sessionStorage.getItem('tea_student');
-  if (!raw) { irA('index'); }
+  if (!raw) { irA('login'); }
   var sessionStudent = JSON.parse(raw || '{}');
 
   if (sessionStorage.getItem('tea_recien_asignado') === '1') {
@@ -239,7 +239,7 @@
 
   function logout() {
     sessionStorage.clear();
-    irA('index');
+    irA('login');
   }
 
   cargarDashboard();
