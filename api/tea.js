@@ -34,6 +34,8 @@ const FIELD_IDS = {
   tea_hora:              'khp9riWSgCna58A6O4pd',
   teacher_id:            'lqmCt3gqk1UMheYDbG7A',
   tea_fecha_inicio:      '1YAuS54toIr124DvkjOY',
+  tea_reset_code:        'O6DW7jSKAejRUg7NbKth',
+  tea_reset_expira:      'PFXIAbQHhzPmn4k3MNYz',
 };
 
 function cfById(contact, nombre) {
@@ -248,7 +250,7 @@ module.exports = async function handler(req, res) {
               'Content-Type':  'application/json',
             },
             body: JSON.stringify({
-              from: 'Talk English Academy <noreply@mails.talkenglishaca.com>',
+              from:    'Talk English Academy <onboarding@resend.dev>',
               to:      [contact.email],
               subject: 'Tu código de acceso — Talk English Academy',
               html:    emailHtml,
@@ -271,27 +273,15 @@ module.exports = async function handler(req, res) {
       // ── FORGOT PASSWORD — paso 2: verificar código ───────────────────────
       case 'forgot_verify': {
         const { contactId, codigo } = req.body || {};
-        console.log('verify recibido:', { contactId, codigo, tipos: { cId: typeof contactId, cod: typeof codigo } });
-        if (!contactId || !codigo) return send(res, 400, { ok: false, error: 'Datos incompletos', recibido: { contactId, codigo } });
+        if (!contactId || !codigo) return send(res, 400, { ok: false, error: 'Datos incompletos' });
 
         const data    = await funnelup(`/contacts/${contactId}`);
         const contact = data?.contact;
         if (!contact) return send(res, 400, { ok: false, error: 'Contacto no encontrado' });
 
-        const storedCode  = contact.customFields?.find(f => f.key === 'tea_reset_code')?.value;
-        const storedExpira = contact.customFields?.find(f => f.key === 'tea_reset_expira')?.value;
-        // ← AGREGAR ESTO TEMPORALMENTE
-        return send(res, 200, { 
-          ok: false, 
-          debug: { 
-            codigoRecibido: codigo, 
-            codigoGuardado: storedCode,
-            expira: storedExpira,
-            ahora: Date.now(),
-            expirado: storedExpira ? Date.now() > parseInt(storedExpira) : 'sin valor'
-          }
-        });
-        // ← FIN DEBUG
+        const storedCode  = cfById(contact, 'tea_reset_code');
+        const storedExpira = cfById(contact, 'tea_reset_expira');
+
         if (!storedCode || storedCode !== codigo) {
           return send(res, 400, { ok: false, error: 'INVALID_CODE' });
         }
@@ -314,8 +304,8 @@ module.exports = async function handler(req, res) {
         const contact = data?.contact;
         if (!contact) return send(res, 400, { ok: false, error: 'Contacto no encontrado' });
 
-        const storedCode   = contact.customFields?.find(f => f.key === 'tea_reset_code')?.value;
-        const storedExpira = contact.customFields?.find(f => f.key === 'tea_reset_expira')?.value;
+        const storedCode   = cfById(contact, 'tea_reset_code');
+        const storedExpira = cfById(contact, 'tea_reset_expira');
 
         if (!storedCode || storedCode !== codigo) return send(res, 400, { ok: false, error: 'INVALID_CODE' });
         if (!storedExpira || Date.now() > parseInt(storedExpira)) return send(res, 400, { ok: false, error: 'EXPIRED_CODE' });
