@@ -167,8 +167,10 @@ module.exports = async function handler(req, res) {
         const validPass  = storedPass ? storedPass === password : phone === password;
         if (!validPass) return send(res, 401, { ok: false, error: 'WRONG_PASS' });
 
-        const cfKey      = (key) => contact.customFields?.find(f => f.key === key)?.value || '';
-        const yaAsignado = cfKey('tea_horario_asignado');
+        const cfKey = (key) => contact.customFields?.find(f => f.key === key)?.value || '';
+        // Verificar yaAsignado tanto por key como por ID directo
+        const yaAsignado = cfKey('tea_horario_asignado') || 
+          contact.customFields?.find(f => f.id === 'D21J2OhL2lbShnJUFCqm')?.value || '';
         const { semana, fase } = calcularProgreso(cfKey('tea_fecha_inicio'));
 
         return send(res, 200, {
