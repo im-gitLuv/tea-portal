@@ -249,9 +249,11 @@ module.exports = async function handler(req, res) {
               `,
             }),
           });
-        } catch(emailErr) {
-          console.error('Error enviando email:', emailErr.message);
-        }
+          } catch(emailErr) {
+            console.error('Error email:', emailErr.message);
+            // Temporal: devolver el error para debug
+            return send(res, 200, { ok: true, contactId: contact.id, emailError: emailErr.message, mensaje: 'Código guardado pero email falló' });
+          }
 
         return send(res, 200, { ok: true, contactId: contact.id, mensaje: 'Código enviado. Revisa tu correo.' });
       }
