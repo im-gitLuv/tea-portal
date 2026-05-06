@@ -222,18 +222,20 @@ module.exports = async function handler(req, res) {
         // Enviar email via FunnelUp (send email action)
         // Usamos el endpoint de emails de FunnelUp
         try {
-          await funnelup(`/conversations/messages/outbound`, {
+          await funnelup(`/conversations/messages`, {
             method: 'POST',
             body: JSON.stringify({
-              type:       'Email',
-              contactId:  contact.id,
-              locationId: LOCATION_ID,
-              subject:    'Tu código de acceso — Talk English Academy',
-              html:       `
+              type:        'Email',
+              contactId:   contact.id,
+              locationId:  LOCATION_ID,
+              emailFrom:   'noreply@talkenglishaca.com',
+              emailTo:     contact.email,
+              subject:     'Tu código de acceso — Talk English Academy',
+              html: `
                 <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
                   <div style="background:#0F145B;padding:20px;border-radius:12px 12px 0 0;text-align:center">
-                    <span style="color:#EA0029;font-weight:700;font-size:18px;letter-spacing:1px">TALK</span>
-                    <span style="color:#fff;font-weight:700;font-size:18px;letter-spacing:1px"> ENGLISH ACADEMY</span>
+                    <span style="color:#EA0029;font-weight:700;font-size:18px">TALK</span>
+                    <span style="color:#fff;font-weight:700;font-size:18px"> ENGLISH ACADEMY</span>
                   </div>
                   <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
                     <h2 style="color:#0F145B;margin:0 0 16px">Código de verificación</h2>
@@ -241,7 +243,7 @@ module.exports = async function handler(req, res) {
                     <div style="background:#f4f6fb;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px">
                       <span style="font-size:36px;font-weight:700;color:#EA0029;letter-spacing:8px">${codigo}</span>
                     </div>
-                    <p style="color:#aaa;font-size:12px;margin:0">Si no solicitaste este código, ignora este mensaje. Tu cuenta sigue segura.</p>
+                    <p style="color:#aaa;font-size:12px">Si no solicitaste este código, ignora este mensaje.</p>
                   </div>
                 </div>
               `,
@@ -249,7 +251,6 @@ module.exports = async function handler(req, res) {
           });
         } catch(emailErr) {
           console.error('Error enviando email:', emailErr.message);
-          // Continuar aunque el email falle — el código ya está guardado
         }
 
         return send(res, 200, { ok: true, contactId: contact.id, mensaje: 'Código enviado. Revisa tu correo.' });
