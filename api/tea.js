@@ -26,7 +26,7 @@ const BLOQUES = {
   noche:  { inicio: 17, fin: 21 },
 };
 
-// IDs reales de los custom fields en FunnelUp (obtenidos via API)
+// IDs reales de custom fields del estudiante
 const FIELD_IDS = {
   tea_horario_asignado:  'D21J2OhL2lbShnJUFCqm',
   tea_bloque:            'KoZo29futqnIujB4igX3',
@@ -36,8 +36,7 @@ const FIELD_IDS = {
   tea_fecha_inicio:      '1YAuS54toIr124DvkjOY',
 };
 
-// Leer custom field por ID real
-function cf(contact, nombre) {
+function cfById(contact, nombre) {
   const fieldId = FIELD_IDS[nombre];
   if (!fieldId) return '';
   return contact?.customFields?.find(f => f.id === fieldId)?.value || '';
@@ -97,18 +96,36 @@ async function profesorLibreEnHora(userId, horaStr, fechaISO) {
 
 function leerAlumnosEnBloque(contacto, email, bloque) {
   const campoKey = `tea_alumnos_${bloque}`;
-  // Para profesores usamos key (endpoint search/duplicate sí devuelve key)
   const campoVal = contacto?.customFields?.find(f => f.key === campoKey)?.value;
   if (campoVal !== undefined && campoVal !== null && campoVal !== '') return parseInt(campoVal, 10) || 0;
   return ALUMNOS_INICIALES[email]?.[bloque] ?? 0;
+}
+
+// Ajusta el contador de un profesor: delta = +1 o -1
+async function ajustarContadorProfesor(profesorContactoId, profesorEmail, bloque, delta) {
+  if (!profesorContactoId || !bloque) return;
+  try {
+    const profData    = await funnelup(`/contacts/${profesorContactoId}`);
+    const profContact = profData?.contact;
+    if (!profContact) return;
+    const campoKey = `tea_alumnos_${bloque}`;
+    const actual   = leerAlumnosEnBloque(profContact, profesorEmail || '', bloque);
+    const nuevo    = Math.max(0, actual + delta); // nunca bajar de 0
+    await funnelup(`/contacts/${profesorContactoId}`, {
+      method: 'PUT',
+      body: JSON.stringify({
+        customFields: [{ key: campoKey, field_value: String(nuevo) }],
+      }),
+    });
+    console.log(`Contador ${profesorEmail} bloque ${bloque}: ${actual} → ${nuevo}`);
+  } catch(e) { console.error(`Error ajustando contador ${profesorContactoId}:`, e.message); }
 }
 
 function calcularProgreso(fechaInicio) {
   if (!fechaInicio) return { semana: 1, fase: 1 };
   const inicio = new Date(fechaInicio);
   if (isNaN(inicio)) return { semana: 1, fase: 1 };
-  const hoy    = new Date();
-  const dias   = Math.floor((hoy - inicio) / (1000 * 60 * 60 * 24));
+  const dias   = Math.floor((new Date() - inicio) / (1000 * 60 * 60 * 24));
   const semana = Math.max(1, Math.min(26, Math.floor(dias / 7) + 1));
   let fase = 1;
   if      (semana <= 6)  fase = 1;
@@ -116,6 +133,11 @@ function calcularProgreso(fechaInicio) {
   else if (semana <= 22) fase = 3;
   else                   fase = 4;
   return { semana, fase };
+}
+
+// Genera código de 6 dígitos
+function generarCodigo() {
+  return String(Math.floor(100000 + Math.random() * 900000));
 }
 
 // ─── router ──────────────────────────────────────────────────────────────────
@@ -145,7 +167,6 @@ module.exports = async function handler(req, res) {
         const validPass  = storedPass ? storedPass === password : phone === password;
         if (!validPass) return send(res, 401, { ok: false, error: 'WRONG_PASS' });
 
-        // login usa search/duplicate que devuelve keys — OK
         const cfKey      = (key) => contact.customFields?.find(f => f.key === key)?.value || '';
         const yaAsignado = cfKey('tea_horario_asignado');
         const { semana, fase } = calcularProgreso(cfKey('tea_fecha_inicio'));
@@ -166,6 +187,127 @@ module.exports = async function handler(req, res) {
             fase,
           },
         });
+      }
+
+      // ── FORGOT PASSWORD — paso 1: generar y enviar código ────────────────
+      case 'forgot_request': {
+        const { email } = req.body || {};
+        if (!email) return send(res, 400, { ok: false, error: 'Email requerido' });
+
+        const data    = await funnelup(`/contacts/search/duplicate?locationId=${LOCATION_ID}&email=${encodeURIComponent(email)}`);
+        const contact = data?.contact;
+
+        // Siempre responder igual para no revelar si el email existe
+        if (!contact) return send(res, 200, { ok: true, mensaje: 'Si el correo existe, recibirás un código.' });
+
+        const tags = (contact.tags || []).map(t => t.toLowerCase());
+        if (!tags.includes('tea-student')) return send(res, 200, { ok: true, mensaje: 'Si el correo existe, recibirás un código.' });
+
+        const codigo  = generarCodigo();
+        const expira  = Date.now() + 15 * 60 * 1000; // 15 minutos
+
+        // Guardar código + expiración en custom field
+        await funnelup(`/contacts/${contact.id}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            customFields: [
+              { key: 'tea_reset_code',    field_value: codigo          },
+              { key: 'tea_reset_expira',  field_value: String(expira)  },
+            ],
+          }),
+        });
+
+        // Enviar email via FunnelUp (send email action)
+        // Usamos el endpoint de emails de FunnelUp
+        try {
+          await funnelup(`/conversations/messages/outbound`, {
+            method: 'POST',
+            body: JSON.stringify({
+              type:       'Email',
+              contactId:  contact.id,
+              locationId: LOCATION_ID,
+              subject:    'Tu código de acceso — Talk English Academy',
+              html:       `
+                <div style="font-family:sans-serif;max-width:480px;margin:0 auto;padding:32px 24px">
+                  <div style="background:#0F145B;padding:20px;border-radius:12px 12px 0 0;text-align:center">
+                    <span style="color:#EA0029;font-weight:700;font-size:18px;letter-spacing:1px">TALK</span>
+                    <span style="color:#fff;font-weight:700;font-size:18px;letter-spacing:1px"> ENGLISH ACADEMY</span>
+                  </div>
+                  <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
+                    <h2 style="color:#0F145B;margin:0 0 16px">Código de verificación</h2>
+                    <p style="color:#6b7280;margin:0 0 24px;line-height:1.6">Hola ${contact.firstName}, usa este código para restablecer tu contraseña. Expira en <strong>15 minutos</strong>.</p>
+                    <div style="background:#f4f6fb;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px">
+                      <span style="font-size:36px;font-weight:700;color:#EA0029;letter-spacing:8px">${codigo}</span>
+                    </div>
+                    <p style="color:#aaa;font-size:12px;margin:0">Si no solicitaste este código, ignora este mensaje. Tu cuenta sigue segura.</p>
+                  </div>
+                </div>
+              `,
+            }),
+          });
+        } catch(emailErr) {
+          console.error('Error enviando email:', emailErr.message);
+          // Continuar aunque el email falle — el código ya está guardado
+        }
+
+        return send(res, 200, { ok: true, contactId: contact.id, mensaje: 'Código enviado. Revisa tu correo.' });
+      }
+
+      // ── FORGOT PASSWORD — paso 2: verificar código ───────────────────────
+      case 'forgot_verify': {
+        const { contactId, codigo } = req.body || {};
+        if (!contactId || !codigo) return send(res, 400, { ok: false, error: 'Datos incompletos' });
+
+        const data    = await funnelup(`/contacts/${contactId}`);
+        const contact = data?.contact;
+        if (!contact) return send(res, 400, { ok: false, error: 'Contacto no encontrado' });
+
+        const storedCode  = contact.customFields?.find(f => f.key === 'tea_reset_code')?.value;
+        const storedExpira = contact.customFields?.find(f => f.key === 'tea_reset_expira')?.value;
+
+        if (!storedCode || storedCode !== codigo) {
+          return send(res, 400, { ok: false, error: 'INVALID_CODE' });
+        }
+
+        if (!storedExpira || Date.now() > parseInt(storedExpira)) {
+          return send(res, 400, { ok: false, error: 'EXPIRED_CODE' });
+        }
+
+        return send(res, 200, { ok: true, mensaje: 'Código válido' });
+      }
+
+      // ── FORGOT PASSWORD — paso 3: cambiar contraseña ─────────────────────
+      case 'forgot_reset': {
+        const { contactId, codigo, nuevaPassword } = req.body || {};
+        if (!contactId || !codigo || !nuevaPassword) {
+          return send(res, 400, { ok: false, error: 'Datos incompletos' });
+        }
+
+        const data    = await funnelup(`/contacts/${contactId}`);
+        const contact = data?.contact;
+        if (!contact) return send(res, 400, { ok: false, error: 'Contacto no encontrado' });
+
+        const storedCode   = contact.customFields?.find(f => f.key === 'tea_reset_code')?.value;
+        const storedExpira = contact.customFields?.find(f => f.key === 'tea_reset_expira')?.value;
+
+        if (!storedCode || storedCode !== codigo) return send(res, 400, { ok: false, error: 'INVALID_CODE' });
+        if (!storedExpira || Date.now() > parseInt(storedExpira)) return send(res, 400, { ok: false, error: 'EXPIRED_CODE' });
+
+        if (nuevaPassword.length < 6) return send(res, 400, { ok: false, error: 'PASSWORD_SHORT' });
+
+        // Guardar nueva contraseña y limpiar código de reset
+        await funnelup(`/contacts/${contactId}`, {
+          method: 'PUT',
+          body: JSON.stringify({
+            customFields: [
+              { key: 'tea_password',     field_value: nuevaPassword },
+              { key: 'tea_reset_code',   field_value: ''            },
+              { key: 'tea_reset_expira', field_value: ''            },
+            ],
+          }),
+        });
+
+        return send(res, 200, { ok: true, mensaje: 'Contraseña actualizada correctamente' });
       }
 
       // ── PROFESORES ───────────────────────────────────────────────────────
@@ -191,7 +333,6 @@ module.exports = async function handler(req, res) {
             if (alumnosActuales >= MAX_ALUMNOS_POR_BLOQUE) return;
 
             const telefono = (contacto?.phone || '').replace(/\D/g, '');
-
             disponibles.push({
               id:               contacto?.id || prof.userId,
               userId:           prof.userId,
@@ -208,15 +349,40 @@ module.exports = async function handler(req, res) {
         return send(res, 200, { ok: true, profesores: disponibles });
       }
 
-      // ── ASIGNAR ──────────────────────────────────────────────────────────
+      // ── ASIGNAR (con manejo de reasignación) ─────────────────────────────
       case 'asignar': {
         const { studentId, profesorContactoId, profesorUserId, profesorNombre, profesorEmail, bloque, hora } = req.body || {};
         if (!studentId || !profesorContactoId || !bloque || !hora) {
           return send(res, 400, { ok: false, error: 'Datos incompletos' });
         }
 
+        // 1. Leer datos ANTERIORES del estudiante para manejar reasignación
+        let profesorAnteriorId    = null;
+        let profesorAnteriorEmail = null;
+        let bloqueAnterior        = null;
+
+        try {
+          const studentData = await funnelup(`/contacts/${studentId}`);
+          const studentContact = studentData?.contact;
+          if (studentContact) {
+            const teacherIdAnterior = cfById(studentContact, 'teacher_id');
+            bloqueAnterior          = cfById(studentContact, 'tea_bloque');
+
+            if (teacherIdAnterior && bloqueAnterior) {
+              // Buscar contacto del profesor anterior
+              const profAnterior = PROFESORES.find(p => p.userId === teacherIdAnterior);
+              if (profAnterior) {
+                const profAntData = await funnelup(`/contacts/search/duplicate?locationId=${LOCATION_ID}&email=${encodeURIComponent(profAnterior.email)}`);
+                profesorAnteriorId    = profAntData?.contact?.id;
+                profesorAnteriorEmail = profAnterior.email;
+              }
+            }
+          }
+        } catch(e) { console.error('Error leyendo datos anteriores:', e.message); }
+
+        // 2. Actualizar contacto del estudiante
         const horarioStr = JSON.stringify({ bloque, hora, profesor: profesorNombre, profesorId: profesorContactoId });
-        const hoy        = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+        const hoy        = new Date().toISOString().split('T')[0];
 
         await funnelup(`/contacts/${studentId}`, {
           method: 'PUT',
@@ -232,6 +398,7 @@ module.exports = async function handler(req, res) {
           }),
         });
 
+        // 3. Asignar profesor como responsable
         if (profesorUserId) {
           await funnelup(`/contacts/${studentId}`, {
             method: 'PUT',
@@ -239,24 +406,23 @@ module.exports = async function handler(req, res) {
           });
         }
 
-        if (profesorContactoId && bloque) {
-          try {
-            const profData    = await funnelup(`/contacts/${profesorContactoId}`);
-            const profContact = profData?.contact;
-            if (profContact) {
-              const campoKey = `tea_alumnos_${bloque}`;
-              const actual   = leerAlumnosEnBloque(profContact, profesorEmail || '', bloque);
-              await funnelup(`/contacts/${profesorContactoId}`, {
-                method: 'PUT',
-                body: JSON.stringify({
-                  customFields: [{ key: campoKey, field_value: String(actual + 1) }],
-                }),
-              });
-            }
-          } catch(e) { console.error('Error contador:', e.message); }
+        // 4. Bajar cupo al profesor ANTERIOR si existía y era diferente o diferente bloque
+        const esReasignacion = profesorAnteriorId &&
+          (profesorAnteriorId !== profesorContactoId || bloqueAnterior !== bloque);
+
+        if (esReasignacion && profesorAnteriorId && bloqueAnterior) {
+          await ajustarContadorProfesor(profesorAnteriorId, profesorAnteriorEmail, bloqueAnterior, -1);
         }
 
-        return send(res, 200, { ok: true, mensaje: 'Asignación completada' });
+        // 5. Subir cupo al nuevo profesor (solo si es nuevo o cambió de bloque)
+        if (esReasignacion || !profesorAnteriorId) {
+          await ajustarContadorProfesor(profesorContactoId, profesorEmail || '', bloque, +1);
+        } else if (!esReasignacion && !profesorAnteriorId) {
+          // Primera asignación
+          await ajustarContadorProfesor(profesorContactoId, profesorEmail || '', bloque, +1);
+        }
+
+        return send(res, 200, { ok: true, mensaje: 'Asignación completada', reasignado: !!esReasignacion });
       }
 
       // ── DASHBOARD ────────────────────────────────────────────────────────
@@ -268,13 +434,10 @@ module.exports = async function handler(req, res) {
         const contact = data?.contact;
         if (!contact) return send(res, 404, { ok: false, error: 'Estudiante no encontrado' });
 
-        // Este endpoint devuelve IDs en lugar de keys — usamos FIELD_IDS
-        const cfId = (nombre) => cf(contact, nombre);
-        const { semana, fase } = calcularProgreso(cfId('tea_fecha_inicio'));
+        const { semana, fase } = calcularProgreso(cfById(contact, 'tea_fecha_inicio'));
 
-        // Teléfono del profesor
         let profesorTelefono = '';
-        const teacherId = cfId('teacher_id');
+        const teacherId = cfById(contact, 'teacher_id');
         if (teacherId) {
           try {
             const profMatch = PROFESORES.find(p => p.userId === teacherId);
@@ -290,9 +453,9 @@ module.exports = async function handler(req, res) {
           student: {
             nombre:           `${contact.firstName} ${contact.lastName}`.trim(),
             email:            contact.email,
-            bloque:           cfId('tea_bloque'),
-            hora:             cfId('tea_hora'),
-            profesor:         cfId('tea_profesor_asignado'),
+            bloque:           cfById(contact, 'tea_bloque'),
+            hora:             cfById(contact, 'tea_hora'),
+            profesor:         cfById(contact, 'tea_profesor_asignado'),
             teacherId,
             profesorTelefono,
             semana,

@@ -7,90 +7,281 @@
 <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;width:100%}
   body{font-family:'Work Sans',sans-serif;min-height:100vh;background:linear-gradient(145deg,#0F145B 0%,#283A97 55%,#4789C8 100%);display:flex;align-items:center;justify-content:center;padding:24px}
   .card{background:#fff;border-radius:20px;padding:44px 40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(15,20,91,0.3);text-align:center}
   .logo-sym{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:#EA0029;border-radius:14px;font-size:32px;font-weight:700;color:#fff;margin-bottom:10px}
   .logo-name{display:block;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#0F145B;margin-bottom:28px}
   h1{font-size:22px;font-weight:700;color:#0F145B;margin-bottom:6px}
-  .sub{font-size:13px;color:#6b7280;margin-bottom:32px;line-height:1.6}
-  .field{text-align:left;margin-bottom:18px}
+  .sub{font-size:13px;color:#6b7280;margin-bottom:28px;line-height:1.6}
+  .field{text-align:left;margin-bottom:16px}
   .field label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:#0F145B;margin-bottom:7px}
   .field input{width:100%;padding:12px 16px;border:1.5px solid #e2e6f0;border-radius:10px;font-size:14px;font-family:'Work Sans',sans-serif;outline:none;transition:border-color 0.2s;color:#0F145B}
   .field input:focus{border-color:#283A97}
-  .btn{width:100%;background:#EA0029;color:#fff;border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:700;font-family:'Work Sans',sans-serif;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;transition:background 0.2s}
+  .btn{width:100%;background:#EA0029;color:#fff;border:none;border-radius:10px;padding:14px;font-size:14px;font-weight:700;font-family:'Work Sans',sans-serif;cursor:pointer;letter-spacing:0.5px;text-transform:uppercase;transition:background 0.2s;margin-bottom:12px}
   .btn:hover{background:#c8001f}
   .btn:disabled{background:#ccc;cursor:not-allowed}
-  .nota{margin-top:22px;font-size:12px;color:#aaa;line-height:1.7}
+  .btn-link{width:100%;background:none;border:none;color:#283A97;font-size:13px;font-family:'Work Sans',sans-serif;cursor:pointer;padding:4px;text-decoration:underline}
+  .btn-link:hover{color:#0F145B}
+  .nota{margin-top:20px;font-size:12px;color:#aaa;line-height:1.7}
   .tag{display:inline-block;background:#e8f4ea;color:#2a7a3a;font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;margin-top:6px}
-  .err{background:#fde8e8;color:#a32d2d;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;text-align:left}
+  .msg-err{background:#fde8e8;color:#a32d2d;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;text-align:left}
+  .msg-ok{background:#e8f4ea;color:#1a5c28;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px;display:none;text-align:left}
+  .screen{display:none}
+  .screen.active{display:block}
+  .code-inputs{display:flex;gap:8px;justify-content:center;margin-bottom:20px}
+  .code-inputs input{width:44px;height:52px;border:1.5px solid #e2e6f0;border-radius:10px;font-size:22px;font-weight:700;text-align:center;color:#0F145B;font-family:'Work Sans',sans-serif;outline:none;transition:border-color .2s}
+  .code-inputs input:focus{border-color:#283A97}
+  .step-indicator{display:flex;align-items:center;justify-content:center;gap:8px;margin-bottom:24px}
+  .step-dot{width:8px;height:8px;border-radius:50%;background:#e2e6f0}
+  .step-dot.active{background:#EA0029;width:20px;border-radius:4px}
+  .step-dot.done{background:#2a7a3a}
 </style>
 </head>
 <body>
 <div class="card">
   <div class="logo-sym">T</div>
   <span class="logo-name">Talk English Academy</span>
-  <h1>Portal del Estudiante</h1>
-  <p class="sub">Acceso exclusivo para estudiantes inscritos en el Programa de Mentoring 1:1</p>
-  <div id="err" class="err"></div>
-  <div class="field">
-    <label>Correo electrónico</label>
-    <input type="email" id="email" placeholder="tu@email.com" autocomplete="email"/>
+
+  <!-- PANTALLA 1: LOGIN -->
+  <div id="s-login" class="screen active">
+    <h1>Portal del Estudiante</h1>
+    <p class="sub">Acceso exclusivo para estudiantes inscritos en el Programa de Mentoring 1:1</p>
+    <div id="login-err" class="msg-err"></div>
+    <div class="field">
+      <label>Correo electrónico</label>
+      <input type="email" id="email" placeholder="tu@email.com" autocomplete="email"/>
+    </div>
+    <div class="field">
+      <label>Contraseña</label>
+      <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password"/>
+    </div>
+    <button class="btn" id="btn-login" onclick="doLogin()">Ingresar al Portal</button>
+    <button class="btn-link" onclick="ir('s-forgot-email')">¿Olvidaste tu contraseña?</button>
+    <div class="nota">Solo pueden acceder estudiantes verificados con el tag<br><span class="tag">TEA-Student ✓</span></div>
   </div>
-  <div class="field">
-    <label>Contraseña</label>
-    <input type="password" id="pass" placeholder="••••••••" autocomplete="current-password"/>
+
+  <!-- PANTALLA 2: INGRESAR EMAIL PARA RECUPERAR -->
+  <div id="s-forgot-email" class="screen">
+    <div class="step-indicator">
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+      <div class="step-dot"></div>
+    </div>
+    <h1>Recuperar acceso</h1>
+    <p class="sub">Ingresa tu correo registrado y te enviaremos un código de verificación de 6 dígitos.</p>
+    <div id="forgot-err" class="msg-err"></div>
+    <div class="field">
+      <label>Correo electrónico</label>
+      <input type="email" id="forgot-email" placeholder="tu@email.com"/>
+    </div>
+    <button class="btn" id="btn-send-code" onclick="enviarCodigo()">Enviar código</button>
+    <button class="btn-link" onclick="ir('s-login')">← Volver al login</button>
   </div>
-  <button class="btn" id="btn" onclick="doLogin()">Ingresar al Portal</button>
-  <div class="nota">
-    Solo pueden acceder estudiantes verificados con el tag<br>
-    <span class="tag">TEA-Student ✓</span>
+
+  <!-- PANTALLA 3: INGRESAR CÓDIGO -->
+  <div id="s-forgot-code" class="screen">
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+      <div class="step-dot"></div>
+    </div>
+    <h1>Ingresa el código</h1>
+    <p class="sub" id="code-sub">Enviamos un código de 6 dígitos a tu correo. Expira en 15 minutos.</p>
+    <div id="code-err" class="msg-err"></div>
+    <div class="code-inputs">
+      <input type="text" maxlength="1" id="c1" oninput="moverFoco(this,'c2')" onkeydown="retroceder(event,this,null)"/>
+      <input type="text" maxlength="1" id="c2" oninput="moverFoco(this,'c3')" onkeydown="retroceder(event,this,'c1')"/>
+      <input type="text" maxlength="1" id="c3" oninput="moverFoco(this,'c4')" onkeydown="retroceder(event,this,'c2')"/>
+      <input type="text" maxlength="1" id="c4" oninput="moverFoco(this,'c5')" onkeydown="retroceder(event,this,'c3')"/>
+      <input type="text" maxlength="1" id="c5" oninput="moverFoco(this,'c6')" onkeydown="retroceder(event,this,'c4')"/>
+      <input type="text" maxlength="1" id="c6" oninput="moverFoco(this,null)" onkeydown="retroceder(event,this,'c5')"/>
+    </div>
+    <button class="btn" id="btn-verify" onclick="verificarCodigo()">Verificar código</button>
+    <button class="btn-link" onclick="ir('s-forgot-email')">← Reenviar código</button>
   </div>
+
+  <!-- PANTALLA 4: NUEVA CONTRASEÑA -->
+  <div id="s-new-pass" class="screen">
+    <div class="step-indicator">
+      <div class="step-dot done"></div>
+      <div class="step-dot done"></div>
+      <div class="step-dot active"></div>
+    </div>
+    <h1>Nueva contraseña</h1>
+    <p class="sub">Elige una contraseña segura de al menos 6 caracteres.</p>
+    <div id="pass-err" class="msg-err"></div>
+    <div id="pass-ok" class="msg-ok"></div>
+    <div class="field">
+      <label>Nueva contraseña</label>
+      <input type="password" id="new-pass1" placeholder="Mínimo 6 caracteres"/>
+    </div>
+    <div class="field">
+      <label>Repetir contraseña</label>
+      <input type="password" id="new-pass2" placeholder="Repite tu contraseña"/>
+    </div>
+    <button class="btn" id="btn-reset" onclick="cambiarPassword()">Guardar contraseña</button>
+  </div>
+
 </div>
+
 <script>
-  var API = 'https://tea-portal-bice.vercel.app/api/tea';
+  var API        = 'https://tea-portal-bice.vercel.app/api/tea';
+  var esFunnelUp = window.location.hostname.indexOf('talkenglishaca.com') > -1;
+  var resetData  = { contactId: null, codigo: null };
+
+  function irA(pagina) {
+    window.location.href = esFunnelUp ? '/studentsarea/' + pagina : pagina + '.html';
+  }
+
+  function ir(screenId) {
+    document.querySelectorAll('.screen').forEach(function(s){s.classList.remove('active')});
+    document.getElementById(screenId).classList.add('active');
+    // Limpiar mensajes
+    document.querySelectorAll('.msg-err,.msg-ok').forEach(function(m){m.style.display='none'});
+  }
+
+  function moverFoco(el, nextId) {
+    if (el.value && nextId) document.getElementById(nextId).focus();
+  }
+
+  function retroceder(e, el, prevId) {
+    if (e.key === 'Backspace' && !el.value && prevId) document.getElementById(prevId).focus();
+  }
+
+  function getCodigo() {
+    return ['c1','c2','c3','c4','c5','c6'].map(function(id){
+      return document.getElementById(id).value;
+    }).join('');
+  }
 
   document.addEventListener('keydown', function(e){
-    if(e.key==='Enter') doLogin();
+    if (e.key === 'Enter' && document.getElementById('s-login').classList.contains('active')) doLogin();
   });
 
-  async function doLogin(){
+  // ── LOGIN ────────────────────────────────────────────────────────────────
+  async function doLogin() {
     var email = document.getElementById('email').value.trim();
     var pass  = document.getElementById('pass').value.trim();
-    var err   = document.getElementById('err');
-    var btn   = document.getElementById('btn');
-    err.style.display='none';
+    var err   = document.getElementById('login-err');
+    var btn   = document.getElementById('btn-login');
+    err.style.display = 'none';
 
-    if(!email||!pass){
-      err.textContent='Por favor ingresa tu correo y contraseña.';
-      err.style.display='block'; return;
-    }
+    if (!email || !pass) { err.textContent = 'Por favor ingresa tu correo y contraseña.'; err.style.display = 'block'; return; }
 
-    btn.disabled=true; btn.textContent='Verificando...';
-
-    try{
-      var res  = await fetch(API+'?action=login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    btn.disabled = true; btn.textContent = 'Verificando...';
+    try {
+      var res  = await fetch(API + '?action=login', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email, password: pass}) });
       var data = await res.json();
 
-      if(!data.ok){
-        var msgs={NO_STUDENT:'No encontramos una cuenta con ese correo.',NO_TAG:'Tu cuenta aún no tiene acceso al portal. Contacta a TEA por WhatsApp.',WRONG_PASS:'Contraseña incorrecta. Si es tu primer acceso, usa los últimos 4 dígitos de tu teléfono.'};
-        err.textContent=msgs[data.error]||'Error al iniciar sesión.';
-        err.style.display='block'; return;
+      if (!data.ok) {
+        var msgs = { NO_STUDENT: 'No encontramos una cuenta con ese correo.', NO_TAG: 'Tu cuenta aún no tiene acceso al portal. Contacta a TEA por WhatsApp.', WRONG_PASS: 'Contraseña incorrecta. Si es tu primer acceso, usa los últimos 4 dígitos de tu teléfono.' };
+        err.textContent = msgs[data.error] || 'Error al iniciar sesión.';
+        err.style.display = 'block'; return;
       }
 
-      // Guardar datos del estudiante en sessionStorage
       sessionStorage.setItem('tea_student', JSON.stringify(data.student));
+      irA(data.student.yaAsignado ? 'dashboard' : 'onboarding');
+    } catch(e) {
+      err.textContent = 'Error de conexión. Intenta de nuevo.';
+      err.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Ingresar al Portal';
+    }
+  }
 
-      // Redirigir según estado
-      if(data.student.yaAsignado){
-        window.location.href='dashboard.html';
-      } else {
-        window.location.href='onboarding.html';
+  // ── FORGOT: PASO 1 — Enviar código ──────────────────────────────────────
+  async function enviarCodigo() {
+    var email = document.getElementById('forgot-email').value.trim();
+    var err   = document.getElementById('forgot-err');
+    var btn   = document.getElementById('btn-send-code');
+    err.style.display = 'none';
+
+    if (!email) { err.textContent = 'Por favor ingresa tu correo.'; err.style.display = 'block'; return; }
+
+    btn.disabled = true; btn.textContent = 'Enviando...';
+    try {
+      var res  = await fetch(API + '?action=forgot_request', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email}) });
+      var data = await res.json();
+
+      if (data.contactId) resetData.contactId = data.contactId;
+
+      document.getElementById('code-sub').textContent = 'Enviamos un código de 6 dígitos a ' + email + '. Expira en 15 minutos.';
+      ir('s-forgot-code');
+    } catch(e) {
+      err.textContent = 'Error de conexión. Intenta de nuevo.';
+      err.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Enviar código';
+    }
+  }
+
+  // ── FORGOT: PASO 2 — Verificar código ───────────────────────────────────
+  async function verificarCodigo() {
+    var codigo = getCodigo();
+    var err    = document.getElementById('code-err');
+    var btn    = document.getElementById('btn-verify');
+    err.style.display = 'none';
+
+    if (codigo.length < 6) { err.textContent = 'Ingresa los 6 dígitos del código.'; err.style.display = 'block'; return; }
+    if (!resetData.contactId) { err.textContent = 'Error de sesión. Vuelve a ingresar tu correo.'; err.style.display = 'block'; return; }
+
+    btn.disabled = true; btn.textContent = 'Verificando...';
+    try {
+      var res  = await fetch(API + '?action=forgot_verify', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({contactId: resetData.contactId, codigo}) });
+      var data = await res.json();
+
+      if (!data.ok) {
+        var msgs = { INVALID_CODE: 'El código no es correcto. Verifica e intenta de nuevo.', EXPIRED_CODE: 'El código expiró. Solicita uno nuevo.' };
+        err.textContent = msgs[data.error] || 'Error al verificar el código.';
+        err.style.display = 'block'; return;
       }
-    } catch(e){
-      err.textContent='Error de conexión. Intenta de nuevo.';
-      err.style.display='block';
-    } finally{
-      btn.disabled=false; btn.textContent='Ingresar al Portal';
+
+      resetData.codigo = codigo;
+      ir('s-new-pass');
+    } catch(e) {
+      err.textContent = 'Error de conexión. Intenta de nuevo.';
+      err.style.display = 'block';
+    } finally {
+      btn.disabled = false; btn.textContent = 'Verificar código';
+    }
+  }
+
+  // ── FORGOT: PASO 3 — Cambiar contraseña ─────────────────────────────────
+  async function cambiarPassword() {
+    var pass1 = document.getElementById('new-pass1').value;
+    var pass2 = document.getElementById('new-pass2').value;
+    var err   = document.getElementById('pass-err');
+    var ok    = document.getElementById('pass-ok');
+    var btn   = document.getElementById('btn-reset');
+    err.style.display = 'none'; ok.style.display = 'none';
+
+    if (pass1.length < 6) { err.textContent = 'La contraseña debe tener al menos 6 caracteres.'; err.style.display = 'block'; return; }
+    if (pass1 !== pass2)  { err.textContent = 'Las contraseñas no coinciden.'; err.style.display = 'block'; return; }
+    if (!resetData.contactId || !resetData.codigo) { err.textContent = 'Error de sesión. Vuelve a iniciar el proceso.'; err.style.display = 'block'; return; }
+
+    btn.disabled = true; btn.textContent = 'Guardando...';
+    try {
+      var res  = await fetch(API + '?action=forgot_reset', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({contactId: resetData.contactId, codigo: resetData.codigo, nuevaPassword: pass1}) });
+      var data = await res.json();
+
+      if (!data.ok) {
+        var msgs = { INVALID_CODE: 'Código inválido. Reinicia el proceso.', EXPIRED_CODE: 'El código expiró.', PASSWORD_SHORT: 'La contraseña debe tener al menos 6 caracteres.' };
+        err.textContent = msgs[data.error] || 'Error al guardar la contraseña.';
+        err.style.display = 'block'; return;
+      }
+
+      ok.textContent = '¡Contraseña actualizada! Ahora puedes ingresar con tu nueva contraseña.';
+      ok.style.display = 'block';
+      btn.textContent = 'Ir al login';
+      btn.onclick = function(){ ir('s-login'); };
+    } catch(e) {
+      err.textContent = 'Error de conexión. Intenta de nuevo.';
+      err.style.display = 'block';
+    } finally {
+      if (btn.textContent !== 'Ir al login') {
+        btn.disabled = false; btn.textContent = 'Guardar contraseña';
+      }
     }
   }
 </script>
