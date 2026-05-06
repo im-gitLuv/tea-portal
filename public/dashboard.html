@@ -245,9 +245,8 @@
     document.getElementById(tabId).classList.add('activo');
   }
 
-  function logout() {
-    sessionStorage.clear();
-    if (!raw) { irAlLogin(); }
+  function logout() { 
+    sessionStorage.clear(); irAlLogin(); 
   }
 
   cargarDashboard();
