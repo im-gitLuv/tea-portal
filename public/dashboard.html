@@ -25,9 +25,9 @@
   .topbar-badge{background:#EA0029;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase}
 
   /* SIDEBAR */
-  .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;opacity:0;transition:opacity .3s}
-  .sidebar-overlay.open{display:block;opacity:1}
-  .sidebar{position:fixed;left:-280px;top:0;bottom:0;width:280px;background:#0F145B;z-index:400;transition:left .3s ease;display:flex;flex-direction:column;overflow-y:auto}
+  .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;opacity:0;transition:opacity .3s;pointer-events:none}
+  .sidebar-overlay.open{display:block;opacity:1;pointer-events:auto}
+  .sidebar{position:fixed;left:-280px;top:0;bottom:0;width:280px;background:#0F145B;z-index:500;transition:left .3s ease;display:flex;flex-direction:column;overflow-y:auto}
   .sidebar.open{left:0}
   .sidebar-header{padding:20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1)}
   .sidebar-logo{display:flex;align-items:center;gap:10px}
@@ -149,7 +149,7 @@
 <div id="sidebar" class="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-logo">
-      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" alt="TEA"/>
+      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:36px;width:auto;filter:brightness(0) invert(1)"/>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -193,8 +193,7 @@
       <span></span><span></span><span></span>
     </button>
     <div class="topbar-logo">
-      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" alt="TEA"/>
-      <span class="topbar-logo-txt"><span>Talk</span> English Academy</span>
+      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:32px;width:auto"/>
     </div>
   </div>
   <div class="topbar-right">
