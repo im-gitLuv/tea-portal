@@ -143,6 +143,29 @@ function generarCodigo() {
   return String(Math.floor(100000 + Math.random() * 900000));
 }
 
+
+// ─── email helper ────────────────────────────────────────────────────────────
+async function enviarEmail(to, subject, html) {
+  try {
+    const res = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${process.env.RESEND_API_KEY}`,
+        'Content-Type':  'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Talk English Academy <noreply@mails.talkenglishaca.com>',
+        to:   [to],
+        subject,
+        html,
+      }),
+    });
+    const data = await res.json();
+    if (!res.ok) console.error('Resend error:', JSON.stringify(data));
+    else console.log('Email enviado a:', to, '| id:', data.id);
+  } catch(e) { console.error('Error email a', to, ':', e.message); }
+}
+
 // ─── router ──────────────────────────────────────────────────────────────────
 
 module.exports = async function handler(req, res) {
@@ -440,6 +463,81 @@ module.exports = async function handler(req, res) {
           await ajustarContadorProfesor(profesorContactoId, profesorEmail || '', bloque, +1);
         }
 
+        // 6. Enviar emails de notificación
+        try {
+          // Obtener datos del estudiante
+          const stdData = await funnelup(`/contacts/${studentId}`);
+          const std     = stdData?.contact;
+          const stdNombre = std ? `${std.firstName} ${std.lastName}`.trim() : 'El estudiante';
+          const stdEmail  = std?.email || '';
+          const stdTel    = (std?.phone || '').replace(/\D/g, '');
+          const BLOQUE_ES = { manana: '🌅 Mañana (8AM–11AM)', tarde: '☀️ Tarde (1PM–4PM)', noche: '🌙 Noche (5PM–9PM)' };
+
+          // Email al PROFESOR
+          if (profesorEmail) {
+            await enviarEmail(
+              profesorEmail,
+              '📚 Nuevo estudiante asignado — Talk English Academy',
+              `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
+                <div style="background:#0F145B;padding:20px 28px;border-radius:12px 12px 0 0">
+                  <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" style="height:40px;margin-bottom:8px;display:block" alt="TEA"/>
+                  <span style="color:#EA0029;font-weight:700;font-size:16px">TALK</span>
+                  <span style="color:#fff;font-weight:700;font-size:16px"> ENGLISH ACADEMY</span>
+                </div>
+                <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
+                  <h2 style="color:#0F145B;margin:0 0 8px">¡Tienes un nuevo estudiante! 🎉</h2>
+                  <p style="color:#6b7280;margin:0 0 24px;line-height:1.6">Hola <strong>${profesorNombre.split(' ')[0]}</strong>, se te ha asignado un nuevo estudiante. Aquí están los detalles:</p>
+                  <div style="background:#f4f6fb;border-radius:10px;padding:20px;margin-bottom:20px">
+                    <p style="margin:0 0 8px;color:#0F145B"><strong>👤 Estudiante:</strong> ${stdNombre}</p>
+                    <p style="margin:0 0 8px;color:#0F145B"><strong>📱 Teléfono:</strong> +${stdTel}</p>
+                    <p style="margin:0 0 8px;color:#0F145B"><strong>📧 Email:</strong> ${stdEmail}</p>
+                    <p style="margin:0 0 8px;color:#0F145B"><strong>⏰ Hora de clase:</strong> ${hora}</p>
+                    <p style="margin:0;color:#0F145B"><strong>📅 Bloque:</strong> ${BLOQUE_ES[bloque] || bloque}</p>
+                  </div>
+                  <p style="color:#6b7280;line-height:1.6;margin:0 0 16px">Por favor ponte en contacto con tu nuevo estudiante por WhatsApp para coordinar los detalles de las sesiones y confirmar el inicio del programa.</p>
+                  <a href="https://wa.me/${stdTel}" style="display:inline-block;background:#25D366;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700">📱 Escribir por WhatsApp</a>
+                  <p style="color:#aaa;font-size:12px;margin-top:24px">Talk English Academy · talkenglishaca.com</p>
+                </div>
+              </div>`
+            );
+          }
+
+          // Email al ESTUDIANTE
+          if (stdEmail) {
+            const profMatch = PROFESORES.find(p => p.nombre === profesorNombre);
+            const profTelRaw = profMatch ? (await funnelup(`/contacts/search/duplicate?locationId=${LOCATION_ID}&email=${encodeURIComponent(profMatch.email)}`).catch(()=>({}))).contact?.phone || '' : '';
+            const profTel = profTelRaw.replace(/\D/g, '');
+
+            await enviarEmail(
+              stdEmail,
+              '🎉 ¡Bienvenido a Talk English Academy! Tu profesor está listo',
+              `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
+                <div style="background:#0F145B;padding:20px 28px;border-radius:12px 12px 0 0">
+                  <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" style="height:40px;margin-bottom:8px;display:block" alt="TEA"/>
+                  <span style="color:#EA0029;font-weight:700;font-size:16px">TALK</span>
+                  <span style="color:#fff;font-weight:700;font-size:16px"> ENGLISH ACADEMY</span>
+                </div>
+                <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
+                  <h2 style="color:#0F145B;margin:0 0 8px">¡Felicitaciones, ${stdNombre.split(' ')[0]}! 🎓</h2>
+                  <p style="color:#6b7280;margin:0 0 24px;line-height:1.6">Has sido asignado exitosamente con tu profesor. A partir de ahora, el camino hacia hablar inglés con confianza comienza.</p>
+                  <div style="background:#f4f6fb;border-radius:10px;padding:20px;margin-bottom:24px">
+                    <p style="margin:0 0 8px;color:#0F145B"><strong>👨‍🏫 Tu Mentor:</strong> ${profesorNombre}</p>
+                    <p style="margin:0 0 8px;color:#0F145B"><strong>⏰ Hora de clase:</strong> ${hora}</p>
+                    <p style="margin:0;color:#0F145B"><strong>📅 Bloque:</strong> ${BLOQUE_ES[bloque] || bloque} · Lunes a Viernes</p>
+                  </div>
+                  <p style="color:#0F145B;font-weight:600;margin:0 0 8px">¿Qué sigue?</p>
+                  <p style="color:#6b7280;line-height:1.6;margin:0 0 20px">Escríbele a tu profesor por WhatsApp para ponerse de acuerdo con los detalles de sus sesiones durante toda la jornada de aprendizaje. ¡Todo depende de ti a partir de ahora!</p>
+                  ${profTel ? `<a href="https://wa.me/${profTel}" style="display:inline-block;background:#25D366;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-bottom:16px">📱 Escribir a ${profesorNombre.split(' ')[0]} por WhatsApp</a>` : ''}
+                  <hr style="border:none;border-top:1px solid #e2e6f0;margin:24px 0"/>
+                  <p style="color:#6b7280;line-height:1.6;margin:0 0 8px">¿Tienes preguntas o problemas técnicos? Puedes abrir un ticket en nuestro <strong>Help Desk</strong> desde el portal y nuestro equipo te responderá.</p>
+                  <a href="https://talkenglishaca.com/studentsarea/login" style="display:inline-block;background:#283A97;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700">🎓 Ir a mi Portal</a>
+                  <p style="color:#aaa;font-size:12px;margin-top:24px">Talk English Academy · talkenglishaca.com</p>
+                </div>
+              </div>`
+            );
+          }
+        } catch(emailErr) { console.error('Error emails asignación:', emailErr.message); }
+
         return send(res, 200, { ok: true, mensaje: 'Asignación completada', reasignado: !!esReasignacion });
       }
 
@@ -498,6 +596,38 @@ module.exports = async function handler(req, res) {
         if (!studentId) return send(res, 400, { ok: false, error: 'studentId requerido' });
         const data = await funnelup(`/contacts/${studentId}`);
         return send(res, 200, { ok: true, raw: data });
+      }
+
+
+      // ── HELPDESK TICKET ──────────────────────────────────────────────────
+      case 'helpdesk_ticket': {
+        const { nombre, email, tema, tipo, descripcion, studentId } = req.body || {};
+        if (!nombre || !email || !tema || !descripcion) {
+          return send(res, 400, { ok: false, error: 'Datos incompletos' });
+        }
+        const tipoLabel = { pregunta:'Pregunta', problema_tecnico:'Problema técnico', incidente:'Incidente', feature_request:'Sugerencia' };
+        await enviarEmail(
+          'yo.luisgonzalez_closer@outlook.com',
+          `🎫 Nuevo ticket: ${tema}`,
+          `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
+            <div style="background:#0F145B;padding:20px 28px;border-radius:12px 12px 0 0">
+              <span style="color:#EA0029;font-weight:700;font-size:16px">TALK</span>
+              <span style="color:#fff;font-weight:700;font-size:16px"> ENGLISH ACADEMY — Help Desk</span>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
+              <h2 style="color:#0F145B;margin:0 0 20px">Nuevo ticket de soporte</h2>
+              <div style="background:#f4f6fb;border-radius:10px;padding:20px;margin-bottom:20px">
+                <p style="margin:0 0 8px;color:#0F145B"><strong>👤 Estudiante:</strong> ${nombre}</p>
+                <p style="margin:0 0 8px;color:#0F145B"><strong>📧 Email:</strong> ${email}</p>
+                <p style="margin:0 0 8px;color:#0F145B"><strong>📋 Tema:</strong> ${tema}</p>
+                <p style="margin:0;color:#0F145B"><strong>🏷️ Tipo:</strong> ${tipoLabel[tipo] || tipo}</p>
+              </div>
+              <p style="color:#0F145B;font-weight:600;margin:0 0 8px">Descripción:</p>
+              <div style="background:#fff;border:1px solid #e2e6f0;border-radius:8px;padding:16px;color:#444;line-height:1.6">${descripcion}</div>
+            </div>
+          </div>`
+        );
+        return send(res, 200, { ok: true, mensaje: 'Ticket enviado' });
       }
 
       default:

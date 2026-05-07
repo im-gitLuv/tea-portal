@@ -40,7 +40,7 @@
 </head>
 <body>
 <div class="card">
-  <div class="logo-sym">T</div>
+  <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" style="height:64px;width:auto;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto" alt="Talk English Academy"/>
   <span class="logo-name">Talk English Academy</span>
 
   <!-- PANTALLA 1: LOGIN -->
@@ -203,7 +203,6 @@
     try {
       var res  = await fetch(API + '?action=forgot_request', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({email}) });
       var data = await res.json();
-      console.log('forgot response:', JSON.stringify(data)); // ← agregar esto
 
       if (data.contactId) resetData.contactId = data.contactId;
 
@@ -220,8 +219,6 @@
   // ── FORGOT: PASO 2 — Verificar código ───────────────────────────────────
   async function verificarCodigo() {
     var codigo = getCodigo();
-    console.log('codigo a enviar:', codigo, 'length:', codigo.length); // ← agregar
-    console.log('contactId:', resetData.contactId); // ← agregar
     var err    = document.getElementById('code-err');
     var btn    = document.getElementById('btn-verify');
     err.style.display = 'none';

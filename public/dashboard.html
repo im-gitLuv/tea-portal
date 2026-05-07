@@ -10,24 +10,55 @@
   html,body{height:100%;width:100%;margin:0;padding:0}
   body{font-family:'Work Sans',sans-serif;background:#f4f6fb;color:#1a1a2e;min-height:100vh;width:100vw}
   :root{--azul:#283A97;--azul-oscuro:#0F145B;--rojo:#EA0029;--borde:#e2e6f0;--suave:#6b7280;--radio:12px;--sombra:0 2px 12px rgba(40,58,151,0.08)}
-  .topbar{background:#0F145B;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;width:100%}
-  .topbar-logo{font-size:13px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase}
-  .topbar-logo span{color:#EA0029}
-  .topbar-right{display:flex;align-items:center;gap:12px}
+
+  /* TOPBAR */
+  .topbar{background:#0F145B;padding:12px 20px;display:flex;align-items:center;justify-content:space-between;width:100%;position:sticky;top:0;z-index:200}
+  .topbar-left{display:flex;align-items:center;gap:14px}
+  .menu-btn{background:none;border:none;cursor:pointer;padding:4px;display:flex;flex-direction:column;gap:5px}
+  .menu-btn span{display:block;width:22px;height:2px;background:#fff;border-radius:2px;transition:all .3s}
+  .topbar-logo{display:flex;align-items:center;gap:10px}
+  .topbar-logo img{height:32px;width:auto}
+  .topbar-logo-txt{font-size:12px;font-weight:700;color:#fff;letter-spacing:1px;text-transform:uppercase}
+  .topbar-logo-txt span{color:#EA0029}
+  .topbar-right{display:flex;align-items:center;gap:10px}
   .topbar-user{font-size:13px;color:rgba(255,255,255,.65)}
   .topbar-badge{background:#EA0029;color:#fff;font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;text-transform:uppercase}
-  .btn-logout{background:none;border:1px solid rgba(255,255,255,.3);color:rgba(255,255,255,.7);font-size:11px;font-weight:600;font-family:'Work Sans',sans-serif;padding:5px 12px;border-radius:6px;cursor:pointer;transition:all .2s}
-  .btn-logout:hover{border-color:#fff;color:#fff}
-  .inner{max-width:760px;margin:0 auto;padding:28px 24px}
-  .banner{background:#e8f4ea;border:1px solid #b5d9bc;border-radius:var(--radio);padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:24px}
+
+  /* SIDEBAR */
+  .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;opacity:0;transition:opacity .3s}
+  .sidebar-overlay.open{display:block;opacity:1}
+  .sidebar{position:fixed;left:-280px;top:0;bottom:0;width:280px;background:#0F145B;z-index:400;transition:left .3s ease;display:flex;flex-direction:column;overflow-y:auto}
+  .sidebar.open{left:0}
+  .sidebar-header{padding:20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1)}
+  .sidebar-logo{display:flex;align-items:center;gap:10px}
+  .sidebar-logo img{height:36px}
+  .sidebar-close{background:none;border:none;color:rgba(255,255,255,.6);font-size:20px;cursor:pointer;padding:4px}
+  .sidebar-close:hover{color:#fff}
+  .sidebar-user{padding:20px;border-bottom:1px solid rgba(255,255,255,.1)}
+  .sidebar-avatar{width:44px;height:44px;border-radius:50%;background:#EA0029;color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0}
+  .sidebar-name{font-size:14px;font-weight:700;color:#fff}
+  .sidebar-email{font-size:11px;color:rgba(255,255,255,.5);margin-top:2px}
+  .sidebar-nav{flex:1;padding:12px 0}
+  .nav-section{padding:8px 20px 4px;font-size:10px;font-weight:700;color:rgba(255,255,255,.35);letter-spacing:1.5px;text-transform:uppercase}
+  .nav-item{display:flex;align-items:center;gap:12px;padding:12px 20px;color:rgba(255,255,255,.75);font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;border:none;background:none;width:100%;text-align:left;font-family:'Work Sans',sans-serif}
+  .nav-item:hover{background:rgba(255,255,255,.08);color:#fff}
+  .nav-item.active{background:rgba(234,0,41,.15);color:#fff;border-left:3px solid #EA0029}
+  .nav-item .nav-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0}
+  .sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.1)}
+  .btn-logout-side{display:flex;align-items:center;gap:10px;width:100%;background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.7);border-radius:8px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Work Sans',sans-serif;transition:all .2s}
+  .btn-logout-side:hover{border-color:#fff;color:#fff}
+
+  /* MAIN CONTENT */
+  .main{min-height:calc(100vh - 56px)}
+  .page{display:none}
+  .page.active{display:block}
+  .inner{max-width:760px;margin:0 auto;padding:24px 20px}
+  .page-title{font-size:20px;font-weight:700;color:#0F145B;margin-bottom:20px}
+
+  /* CARDS */
+  .banner{background:#e8f4ea;border:1px solid #b5d9bc;border-radius:var(--radio);padding:16px 20px;display:flex;align-items:center;gap:14px;margin-bottom:20px}
   .banner-icon{width:36px;height:36px;background:#2a7a3a;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;flex-shrink:0}
   .banner-txt{font-size:13px;font-weight:600;color:#1a5c28;line-height:1.6}
-  .tabs{display:flex;border-bottom:2px solid var(--borde);margin-bottom:24px}
-  .tab{padding:11px 20px;font-size:13px;font-weight:600;color:var(--suave);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;background:none;border-top:none;border-left:none;border-right:none;font-family:'Work Sans',sans-serif;transition:all .2s}
-  .tab.activo{color:#EA0029;border-bottom-color:#EA0029}
-  .tab:hover{color:#0F145B}
-  .tab-content{display:none}
-  .tab-content.activo{display:block}
   .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}
   @media(max-width:600px){.grid2{grid-template-columns:1fr}}
   .card{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);padding:20px;box-shadow:var(--sombra)}
@@ -49,7 +80,9 @@
   .prog-bar{background:#f0f0f0;border-radius:20px;height:9px;margin:14px 0 6px;overflow:hidden}
   .prog-fill{height:100%;border-radius:20px;background:linear-gradient(90deg,#283A97,#4789C8);transition:width .5s ease}
   .prog-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--suave)}
-  .lib-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+
+  /* BIBLIOTECA */
+  .lib-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
   @media(max-width:600px){.lib-grid{grid-template-columns:1fr 1fr}}
   .lib-card{background:#fff;border:1px solid var(--borde);border-radius:10px;padding:16px 14px;cursor:pointer;transition:all .2s}
   .lib-card:hover{border-color:var(--azul);box-shadow:var(--sombra)}
@@ -58,6 +91,8 @@
   .lib-meta{font-size:11px;color:#aaa}
   .lib-tipo{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;display:inline-block;margin-top:9px}
   .lt-v{background:#fde8e8;color:#a32d2d}.lt-d{background:#eef1fb;color:#185fa5}.lt-a{background:#e8f4ea;color:#2a7a3a}
+
+  /* FASES */
   .fase-row{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid #f5f5f5;font-size:13px}
   .fase-row:last-child{border-bottom:none}
   .fase-dot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
@@ -66,41 +101,125 @@
   .fase-sems{color:var(--suave);font-size:12px}
   .fase-badge-activo{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#eef1fb;color:#185fa5}
   .fase-badge-hecho{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#e8f4ea;color:#2a7a3a}
+
+  /* LOADER */
   .loader-full{display:flex;align-items:center;justify-content:center;min-height:60vh;flex-direction:column;gap:16px}
   .spinner{width:36px;height:36px;border:3px solid var(--borde);border-top-color:var(--azul);border-radius:50%;animation:spin .7s linear infinite}
   @keyframes spin{to{transform:rotate(360deg)}}
   .loader-txt{font-size:13px;color:var(--suave)}
+
+  /* HELPDESK */
+  .hd-form .field{margin-bottom:18px}
+  .hd-form label{display:block;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#0F145B;margin-bottom:7px}
+  .hd-form input,.hd-form select,.hd-form textarea{width:100%;padding:11px 14px;border:1.5px solid var(--borde);border-radius:10px;font-size:14px;font-family:'Work Sans',sans-serif;outline:none;color:#0F145B;transition:border-color .2s}
+  .hd-form input:focus,.hd-form select:focus,.hd-form textarea:focus{border-color:var(--azul)}
+  .hd-form textarea{min-height:120px;resize:vertical}
+  .btn-primary{background:#EA0029;color:#fff;border:none;border-radius:10px;padding:13px 24px;font-size:14px;font-weight:700;font-family:'Work Sans',sans-serif;cursor:pointer;transition:background .2s}
+  .btn-primary:hover{background:#c8001f}
+  .btn-primary:disabled{background:#ccc;cursor:not-allowed}
+  .btn-secondary{background:#f0f3ff;color:var(--azul);border:1px solid var(--azul);border-radius:10px;padding:11px 20px;font-size:13px;font-weight:700;font-family:'Work Sans',sans-serif;cursor:pointer;transition:all .2s}
+  .btn-secondary:hover{background:#dce3ff}
+  .ticket-card{background:#fff;border:1px solid var(--borde);border-radius:var(--radio);padding:18px 20px;margin-bottom:12px;cursor:pointer;transition:all .2s}
+  .ticket-card:hover{border-color:var(--azul);box-shadow:var(--sombra)}
+  .ticket-status{font-size:10px;font-weight:700;padding:3px 10px;border-radius:20px;display:inline-block}
+  .ts-open{background:#fde8e8;color:#a32d2d}
+  .ts-pending{background:#fff3cd;color:#856404}
+  .ts-resolved{background:#e8f4ea;color:#2a7a3a}
+  .ts-closed{background:#eee;color:#666}
+  .ticket-msg{background:#f4f6fb;border-radius:8px;padding:14px;margin-bottom:10px;font-size:13px;line-height:1.6;color:#444}
+  .ticket-reply{background:#eef1fb;border-radius:8px;padding:14px;margin-bottom:10px;font-size:13px;line-height:1.6;color:#0F145B;border-left:3px solid var(--azul)}
+  .msg-ok{background:#e8f4ea;color:#1a5c28;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px}
+  .msg-err{background:#fde8e8;color:#a32d2d;border-radius:8px;padding:10px 14px;font-size:13px;margin-bottom:16px}
+
+  /* CONFIG */
+  .config-section{margin-bottom:24px}
+  .config-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#0F145B;margin-bottom:10px}
+  .config-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid #f5f5f5}
+  .config-row:last-child{border-bottom:none}
+  .config-row-label{font-size:14px;color:#0F145B;font-weight:500}
+  .config-row-sub{font-size:12px;color:var(--suave);margin-top:2px}
 </style>
 </head>
 <body>
-<div class="topbar">
-  <span class="topbar-logo">Talk <span>English</span> Academy</span>
-  <div class="topbar-right">
-    <span class="topbar-user" id="tb-nombre"></span>
-    <span class="topbar-badge" id="tb-semana">Semana 1</span>
-    <button class="btn-logout" onclick="logout()">Cerrar sesión</button>
+
+<!-- SIDEBAR OVERLAY -->
+<div id="overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+
+<!-- SIDEBAR -->
+<div id="sidebar" class="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-logo">
+      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" alt="TEA"/>
+    </div>
+    <button class="sidebar-close" onclick="closeSidebar()">✕</button>
+  </div>
+  <div class="sidebar-user">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="sidebar-avatar" id="sb-ava">?</div>
+      <div>
+        <div class="sidebar-name" id="sb-nombre">—</div>
+        <div class="sidebar-email" id="sb-email">—</div>
+      </div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <button class="nav-item active" id="nav-home" onclick="navTo('home')">
+      <span class="nav-icon">🏠</span> Mi Espacio
+    </button>
+    <button class="nav-item" id="nav-biblioteca" onclick="navTo('biblioteca')">
+      <span class="nav-icon">📚</span> Biblioteca
+    </button>
+    <div class="nav-section">Soporte</div>
+    <button class="nav-item" id="nav-helpdesk" onclick="navTo('helpdesk')">
+      <span class="nav-icon">🎫</span> Help Desk
+    </button>
+    <div class="nav-section">Cuenta</div>
+    <button class="nav-item" id="nav-config" onclick="navTo('config')">
+      <span class="nav-icon">⚙️</span> Configuración
+    </button>
+  </nav>
+  <div class="sidebar-footer">
+    <button class="btn-logout-side" onclick="logout()">
+      <span>🚪</span> Cerrar sesión
+    </button>
   </div>
 </div>
 
-<div id="loading" class="loader-full">
-  <div class="spinner"></div>
-  <span class="loader-txt">Cargando tu espacio...</span>
+<!-- TOPBAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <button class="menu-btn" onclick="openSidebar()" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+    <div class="topbar-logo">
+      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" alt="TEA"/>
+      <span class="topbar-logo-txt"><span>Talk</span> English Academy</span>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="topbar-user" id="tb-nombre"></span>
+    <span class="topbar-badge" id="tb-semana">Semana 1</span>
+  </div>
 </div>
 
-<div id="main-content" style="display:none">
-  <div class="inner">
-    <div id="banner" class="banner" style="display:none">
-      <div class="banner-icon">✓</div>
-      <div class="banner-txt">¡Inscripción confirmada! Tu profesor y horario han sido registrados. Recibirás un mensaje por WhatsApp con los detalles de tu primera clase.</div>
-    </div>
+<div class="main">
 
-    <div class="tabs">
-      <button class="tab activo" onclick="switchTab(this,'tab-inicio')">Mi Espacio</button>
-      <button class="tab" onclick="switchTab(this,'tab-biblioteca')">Biblioteca</button>
-      <button class="tab" onclick="switchTab(this,'tab-progreso')">Mi Progreso</button>
+  <!-- LOADER -->
+  <div id="page-loading" class="page active">
+    <div class="loader-full">
+      <div class="spinner"></div>
+      <span class="loader-txt">Cargando tu espacio...</span>
     </div>
+  </div>
 
-    <div id="tab-inicio" class="tab-content activo">
+  <!-- MI ESPACIO -->
+  <div id="page-home" class="page">
+    <div class="inner">
+      <div id="banner" class="banner" style="display:none">
+        <div class="banner-icon">✓</div>
+        <div class="banner-txt">¡Inscripción confirmada! Tu profesor y horario han sido registrados. Recibirás un email con los detalles y podrás contactar a tu profesor por WhatsApp.</div>
+      </div>
       <div class="grid2">
         <div class="card">
           <div class="card-header"><div class="card-icon ci-azul">📅</div><div class="card-titulo">Mi Horario Semanal</div></div>
@@ -116,7 +235,6 @@
             <div class="prof-ava" id="d-prof-ava">?</div>
             <div><div class="prof-nombre" id="d-prof-nombre">—</div><div class="prof-rol">Mentor TEA</div></div>
           </div>
-          <div id="d-prof-bio" style="font-size:12px;color:var(--suave);line-height:1.6;margin-bottom:4px"></div>
           <a id="btn-wa" class="btn-wa" href="#" target="_blank">📱 Contactar por WhatsApp</a>
         </div>
       </div>
@@ -124,10 +242,15 @@
         <div class="card-header"><div class="card-icon ci-verde">📊</div><div class="card-titulo" id="prog-titulo">Tu Progreso — Fase 1: El Despertar</div></div>
         <div class="prog-bar"><div class="prog-fill" id="prog-fill" style="width:4%"></div></div>
         <div class="prog-labels"><span id="prog-semana">Semana 1 de 26</span><span id="prog-pct">4% completado</span></div>
+        <div id="fases-container" style="margin-top:20px"></div>
       </div>
     </div>
+  </div>
 
-    <div id="tab-biblioteca" class="tab-content">
+  <!-- BIBLIOTECA -->
+  <div id="page-biblioteca" class="page">
+    <div class="inner">
+      <p class="page-title">📚 Biblioteca</p>
       <div class="lib-grid">
         <div class="lib-card"><div class="lib-icon">🎬</div><div class="lib-titulo">Sonidos que no existen en español</div><div class="lib-meta">Fase 1 · 18 min</div><span class="lib-tipo lt-v">Video</span></div>
         <div class="lib-card"><div class="lib-icon">📄</div><div class="lib-titulo">50 Frases de impacto en el trabajo</div><div class="lib-meta">Todas las fases · PDF</div><span class="lib-tipo lt-d">Documento</span></div>
@@ -137,15 +260,120 @@
         <div class="lib-card"><div class="lib-icon">🎯</div><div class="lib-titulo">Conversación simulada: entrevista</div><div class="lib-meta">Fase 3 · 30 min</div><span class="lib-tipo lt-a">Actividad</span></div>
       </div>
     </div>
+  </div>
 
-    <div id="tab-progreso" class="tab-content">
-      <div class="card">
-        <div class="card-header"><div class="card-icon ci-azul">🗓️</div><div class="card-titulo">Las 4 Fases del Programa</div></div>
-        <div id="fases-container"></div>
+  <!-- HELP DESK -->
+  <div id="page-helpdesk" class="page">
+    <div class="inner">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <p class="page-title" style="margin:0">🎫 Help Desk</p>
+        <div style="display:flex;gap:10px">
+          <button class="btn-secondary" id="btn-ver-tickets" onclick="mostrarSeccion('tickets')" style="display:none">Ver mis tickets</button>
+          <button class="btn-primary" id="btn-nuevo-ticket" onclick="mostrarSeccion('nuevo')">+ Nuevo ticket</button>
+        </div>
+      </div>
+
+      <!-- NUEVO TICKET -->
+      <div id="hd-nuevo">
+        <div class="card hd-form">
+          <h3 style="font-size:16px;color:#0F145B;margin-bottom:20px">Nuevo ticket de soporte</h3>
+          <div id="hd-ok" class="msg-ok" style="display:none"></div>
+          <div id="hd-err" class="msg-err" style="display:none"></div>
+          <div class="field">
+            <label>Nombre completo</label>
+            <input type="text" id="hd-nombre" placeholder="Tu nombre completo"/>
+          </div>
+          <div class="field">
+            <label>Correo electrónico</label>
+            <input type="email" id="hd-email" placeholder="tu@email.com"/>
+          </div>
+          <div class="field">
+            <label>Tema</label>
+            <input type="text" id="hd-tema" placeholder="Describe brevemente tu consulta"/>
+          </div>
+          <div class="field">
+            <label>Tipo de ticket</label>
+            <select id="hd-tipo">
+              <option value="">Selecciona...</option>
+              <option value="pregunta">❓ Pregunta</option>
+              <option value="problema_tecnico">🔧 Problema técnico</option>
+              <option value="incidente">⚠️ Incidente</option>
+              <option value="feature_request">💡 Sugerencia / Feature request</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Descripción</label>
+            <textarea id="hd-descripcion" placeholder="Describe tu consulta con el mayor detalle posible..."></textarea>
+          </div>
+          <button class="btn-primary" id="btn-enviar-ticket" onclick="enviarTicket()">Enviar ticket</button>
+        </div>
+      </div>
+
+      <!-- MIS TICKETS -->
+      <div id="hd-tickets" style="display:none">
+        <div id="tickets-loader" class="loader-full" style="min-height:200px">
+          <div class="spinner"></div>
+          <span class="loader-txt">Cargando tickets...</span>
+        </div>
+        <div id="tickets-lista"></div>
+      </div>
+
+      <!-- DETALLE TICKET -->
+      <div id="hd-detalle" style="display:none">
+        <button class="btn-secondary" onclick="mostrarSeccion('tickets')" style="margin-bottom:16px">← Volver</button>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+            <div>
+              <h3 id="det-tema" style="font-size:16px;color:#0F145B;margin-bottom:6px">—</h3>
+              <span id="det-status" class="ticket-status">—</span>
+            </div>
+            <span id="det-fecha" style="font-size:12px;color:var(--suave)"></span>
+          </div>
+          <div id="det-mensajes"></div>
+        </div>
       </div>
     </div>
   </div>
-</div>
+
+  <!-- CONFIGURACIÓN -->
+  <div id="page-config" class="page">
+    <div class="inner">
+      <p class="page-title">⚙️ Configuración</p>
+      <div class="card">
+        <div class="config-section">
+          <div class="config-label">Cuenta</div>
+          <div class="config-row">
+            <div><div class="config-row-label">Correo electrónico</div><div class="config-row-sub" id="cfg-email">—</div></div>
+          </div>
+          <div class="config-row">
+            <div><div class="config-row-label">Nombre</div><div class="config-row-sub" id="cfg-nombre">—</div></div>
+          </div>
+        </div>
+        <div class="config-section">
+          <div class="config-label">Contraseña</div>
+          <div class="config-row">
+            <div>
+              <div class="config-row-label">Cambiar contraseña</div>
+              <div class="config-row-sub">Recibirás un código en tu correo para confirmar el cambio</div>
+            </div>
+            <button class="btn-secondary" onclick="irAlLogin()">Cambiar</button>
+          </div>
+        </div>
+        <div class="config-section">
+          <div class="config-label">Sesión</div>
+          <div class="config-row">
+            <div>
+              <div class="config-row-label">Cerrar sesión</div>
+              <div class="config-row-sub">Salir del portal del estudiante</div>
+            </div>
+            <button class="btn-secondary" onclick="logout()">Salir</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /main -->
 
 <script>
   var API = 'https://tea-portal-bice.vercel.app/api/tea';
@@ -158,22 +386,10 @@
   ];
   var FASE_NOMBRES = ['El Despertar','El Desafío','El Flujo','El Dominio'];
   var esFunnelUp = window.location.hostname.indexOf('talkenglishaca.com') > -1;
+  var tickets = [];
 
-  function irA(pagina) {
-      if (esFunnelUp) {
-        window.location.replace('/studentsarea/' + pagina);
-      } else {
-        window.location.href = pagina + '.html';
-      }
-  }
-
-  function irAlLogin() {
-      if (esFunnelUp) {
-        window.location.replace('/studentsarea/login');
-      } else {
-        window.location.href = 'index.html';
-      }
-  }
+  function irA(p){ window.location.replace(esFunnelUp ? '/studentsarea/'+p : p+'.html'); }
+  function irAlLogin(){ window.location.replace(esFunnelUp ? '/studentsarea/login' : 'index.html'); }
 
   var raw = sessionStorage.getItem('tea_student');
   if (!raw) { irAlLogin(); }
@@ -184,17 +400,35 @@
     sessionStorage.removeItem('tea_recien_asignado');
   }
 
+  // SIDEBAR
+  function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
+  function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+
+  // NAV
+  var currentPage = 'home';
+  function navTo(page) {
+    document.querySelectorAll('.page').forEach(function(p){p.classList.remove('active')});
+    document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+    document.getElementById('page-'+page).classList.add('active');
+    var navBtn = document.getElementById('nav-'+page);
+    if(navBtn) navBtn.classList.add('active');
+    currentPage = page;
+    closeSidebar();
+    if(page === 'helpdesk') mostrarSeccion('nuevo');
+  }
+
+  // DASHBOARD DATA
   async function cargarDashboard() {
     try {
-      var res  = await fetch(API + '?action=dashboard&studentId=' + sessionStudent.id);
+      var res  = await fetch(API+'?action=dashboard&studentId='+sessionStudent.id);
       var data = await res.json();
       if (!data.ok) throw new Error(data.error);
       renderDashboard(data.student);
     } catch(e) {
       renderDashboard(sessionStudent);
     } finally {
-      document.getElementById('loading').style.display  = 'none';
-      document.getElementById('main-content').style.display = 'block';
+      document.getElementById('page-loading').classList.remove('active');
+      document.getElementById('page-home').classList.add('active');
     }
   }
 
@@ -203,8 +437,8 @@
     var fase   = s.fase   || 1;
     var pct    = Math.round((semana / 26) * 100);
 
-    document.getElementById('tb-nombre').textContent = (s.nombre || '').split(' ')[0];
-    document.getElementById('tb-semana').textContent = 'Semana ' + semana;
+    document.getElementById('tb-nombre').textContent = (s.nombre||'').split(' ')[0];
+    document.getElementById('tb-semana').textContent = 'Semana '+semana;
     document.getElementById('d-hora').textContent    = s.hora   || '—';
     document.getElementById('d-bloque').textContent  = BLOQUE_LABEL[s.bloque] || s.bloque || '—';
 
@@ -215,43 +449,133 @@
 
     var wa = document.getElementById('btn-wa');
     if (s.profesorTelefono) {
-      var msg = encodeURIComponent('Hola, soy ' + s.nombre + ', estudiante de Talk English Academy. Mi horario es ' + s.hora + '. ¡Quedo atento!');
-      wa.href = 'https://wa.me/' + s.profesorTelefono + '?text=' + msg;
-    } else {
-      wa.href = 'https://wa.me/16892809986';
-    }
+      var msg = encodeURIComponent('Hola, soy '+s.nombre+', estudiante de Talk English Academy. Mi horario es '+s.hora+'. ¡Quedo atento!');
+      wa.href = 'https://wa.me/'+s.profesorTelefono+'?text='+msg;
+    } else { wa.href = 'https://wa.me/16892809986'; }
 
-    document.getElementById('prog-titulo').textContent = 'Tu Progreso — Fase ' + fase + ': ' + FASE_NOMBRES[fase-1];
-    document.getElementById('prog-fill').style.width   = pct + '%';
-    document.getElementById('prog-semana').textContent = 'Semana ' + semana + ' de 26';
-    document.getElementById('prog-pct').textContent    = pct + '% completado';
+    document.getElementById('prog-titulo').textContent = 'Tu Progreso — Fase '+fase+': '+FASE_NOMBRES[fase-1];
+    document.getElementById('prog-fill').style.width   = pct+'%';
+    document.getElementById('prog-semana').textContent = 'Semana '+semana+' de 26';
+    document.getElementById('prog-pct').textContent    = pct+'% completado';
 
+    // Sidebar info
+    document.getElementById('sb-ava').textContent    = iniciales.slice(0,1) || (s.nombre||'?')[0].toUpperCase();
+    document.getElementById('sb-nombre').textContent = s.nombre || '—';
+    document.getElementById('sb-email').textContent  = s.email  || '—';
+
+    // Config
+    document.getElementById('cfg-email').textContent  = s.email  || '—';
+    document.getElementById('cfg-nombre').textContent = s.nombre || '—';
+
+    // Fases
     var fasesHtml = '';
-    FASES.forEach(function(f, i) {
-      var faseNum = i + 1;
-      var dotClass, badge;
-      if (faseNum < fase) {
-        dotClass = 'fd-hecho'; badge = '<span class="fase-badge-hecho">Completada ✓</span>';
-      } else if (faseNum === fase) {
-        dotClass = 'fd-activo'; badge = '<span class="fase-badge-activo">En curso — Sem. ' + semana + '</span>';
-      } else {
-        dotClass = 'fd-pending'; badge = '<span style="font-size:11px;color:#aaa">Próximamente</span>';
-      }
-      fasesHtml += '<div class="fase-row"><div class="fase-dot ' + dotClass + '"></div><span class="fase-nombre">' + f.nombre + '</span><span class="fase-sems">' + f.sems + '</span>' + badge + '</div>';
+    FASES.forEach(function(f,i){
+      var faseNum=i+1; var dotClass,badge;
+      if(faseNum<fase){dotClass='fd-hecho';badge='<span class="fase-badge-hecho">Completada ✓</span>';}
+      else if(faseNum===fase){dotClass='fd-activo';badge='<span class="fase-badge-activo">En curso — Sem.'+semana+'</span>';}
+      else{dotClass='fd-pending';badge='<span style="font-size:11px;color:#aaa">Próximamente</span>';}
+      fasesHtml+='<div class="fase-row"><div class="fase-dot '+dotClass+'"></div><span class="fase-nombre">'+f.nombre+'</span><span class="fase-sems">'+f.sems+'</span>'+badge+'</div>';
     });
     document.getElementById('fases-container').innerHTML = fasesHtml;
+
+    // Prellenar helpdesk
+    document.getElementById('hd-nombre').value = s.nombre || '';
+    document.getElementById('hd-email').value  = s.email  || '';
   }
 
-  function switchTab(btn, tabId) {
-    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('activo')});
-    document.querySelectorAll('.tab-content').forEach(function(t){t.classList.remove('activo')});
-    btn.classList.add('activo');
-    document.getElementById(tabId).classList.add('activo');
+  // HELPDESK
+  function mostrarSeccion(sec) {
+    document.getElementById('hd-nuevo').style.display    = sec==='nuevo'    ? 'block' : 'none';
+    document.getElementById('hd-tickets').style.display  = sec==='tickets'  ? 'block' : 'none';
+    document.getElementById('hd-detalle').style.display  = sec==='detalle'  ? 'block' : 'none';
+    document.getElementById('btn-nuevo-ticket').style.display  = sec==='nuevo'   ? 'none'  : 'inline-block';
+    document.getElementById('btn-ver-tickets').style.display   = sec==='tickets' ? 'none'  : 'inline-block';
+    if(sec==='tickets') cargarTickets();
   }
 
-  function logout() { 
-    sessionStorage.clear(); irAlLogin(); 
+  // Tickets guardados localmente (sin backend dedicado por ahora)
+  function cargarTickets() {
+    var lista = document.getElementById('tickets-lista');
+    document.getElementById('tickets-loader').style.display = 'none';
+    var stored = JSON.parse(localStorage.getItem('tea_tickets_'+sessionStudent.id) || '[]');
+    tickets = stored;
+    if(!stored.length){
+      lista.innerHTML='<div style="text-align:center;padding:40px;color:var(--suave)">No tienes tickets aún.<br>¡Crea tu primero si necesitas ayuda!</div>';
+      return;
+    }
+    lista.innerHTML = stored.map(function(t,i){
+      var statusClass = {abierto:'ts-open',pendiente:'ts-pending',respondido:'ts-resolved',cerrado:'ts-closed'}[t.status]||'ts-open';
+      var statusLabel = {abierto:'Abierto',pendiente:'Pendiente',respondido:'Respondido',cerrado:'Cerrado'}[t.status]||t.status;
+      return '<div class="ticket-card" onclick="verTicket('+i+')">'+
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+        '<span class="ticket-status '+statusClass+'">'+statusLabel+'</span>'+
+        '<span style="font-size:11px;color:var(--suave)">'+t.fecha+'</span></div>'+
+        '<div style="font-size:14px;font-weight:700;color:#0F145B;margin-bottom:4px">'+t.tema+'</div>'+
+        '<div style="font-size:12px;color:var(--suave)">'+t.tipo+'</div></div>';
+    }).join('');
   }
+
+  function verTicket(i) {
+    var t = tickets[i];
+    var statusClass = {abierto:'ts-open',pendiente:'ts-pending',respondido:'ts-resolved',cerrado:'ts-closed'}[t.status]||'ts-open';
+    var statusLabel = {abierto:'Abierto',pendiente:'Pendiente',respondido:'Respondido',cerrado:'Cerrado'}[t.status]||t.status;
+    document.getElementById('det-tema').textContent   = t.tema;
+    document.getElementById('det-fecha').textContent  = t.fecha;
+    document.getElementById('det-status').textContent = statusLabel;
+    document.getElementById('det-status').className   = 'ticket-status '+statusClass;
+    var msgs = '<div class="ticket-msg"><strong>Tu mensaje:</strong><br>'+t.descripcion+'</div>';
+    if(t.respuesta) msgs += '<div class="ticket-reply"><strong>Respuesta de TEA:</strong><br>'+t.respuesta+'</div>';
+    document.getElementById('det-mensajes').innerHTML = msgs;
+    mostrarSeccion('detalle');
+  }
+
+  async function enviarTicket() {
+    var nombre = document.getElementById('hd-nombre').value.trim();
+    var email  = document.getElementById('hd-email').value.trim();
+    var tema   = document.getElementById('hd-tema').value.trim();
+    var tipo   = document.getElementById('hd-tipo').value;
+    var desc   = document.getElementById('hd-descripcion').value.trim();
+    var ok     = document.getElementById('hd-ok');
+    var err    = document.getElementById('hd-err');
+    var btn    = document.getElementById('btn-enviar-ticket');
+    ok.style.display = 'none'; err.style.display = 'none';
+
+    if(!nombre||!email||!tema||!tipo||!desc){
+      err.textContent='Por favor completa todos los campos.'; err.style.display='block'; return;
+    }
+
+    btn.disabled=true; btn.textContent='Enviando...';
+
+    // Guardar ticket localmente
+    var stored = JSON.parse(localStorage.getItem('tea_tickets_'+sessionStudent.id) || '[]');
+    var ticket = {
+      id: Date.now(),
+      nombre, email, tema, tipo, descripcion: desc,
+      status: 'abierto',
+      fecha: new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}),
+      respuesta: null,
+    };
+    stored.unshift(ticket);
+    localStorage.setItem('tea_tickets_'+sessionStudent.id, JSON.stringify(stored));
+
+    // Enviar email de notificación a TEA via backend
+    try {
+      await fetch(API+'?action=helpdesk_ticket', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({nombre, email, tema, tipo, descripcion: desc, studentId: sessionStudent.id}),
+      });
+    } catch(e){ console.error('Error notificando ticket:', e); }
+
+    ok.textContent='✓ Tu ticket fue enviado. Nuestro equipo lo revisará y recibirás una respuesta por correo.';
+    ok.style.display='block';
+    document.getElementById('hd-tema').value='';
+    document.getElementById('hd-tipo').value='';
+    document.getElementById('hd-descripcion').value='';
+    btn.disabled=false; btn.textContent='Enviar ticket';
+  }
+
+  function logout(){ sessionStorage.clear(); irAlLogin(); }
 
   cargarDashboard();
 </script>
