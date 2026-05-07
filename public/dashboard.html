@@ -421,12 +421,16 @@ html, body {
   // Only close sidebar when clicking the overlay (outside sidebar area)
   document.addEventListener('DOMContentLoaded', function(){
     document.getElementById('overlay').addEventListener('click', function(e){
+      e.stopPropagation();
       closeSidebar();
     });
+    // Capturar en fase de captura para interceptar antes que FunnelUp
     document.getElementById('sidebar').addEventListener('click', function(e){
       e.stopPropagation();
-      e.preventDefault();
-    }, true); // true = capture phase, intercepta antes que FunnelUp
+    }, true);
+    document.getElementById('sidebar').addEventListener('mousedown', function(e){
+      e.stopPropagation();
+    }, true);
   });
 
   // NAV
