@@ -6,6 +6,16 @@
 <title>Mi Espacio — Talk English Academy</title>
 <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
+  /* Escapar del contenedor de FunnelUp */
+html, body {
+  margin: 0 !important;
+  padding: 0 !important;
+  overflow-x: hidden;
+}
+/* Forzar que el sidebar y overlay usen el viewport real */
+#sidebar, #overlay {
+  position: fixed !important;
+}
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;width:100%;margin:0;padding:0}
   body{font-family:'Work Sans',sans-serif;background:#f4f6fb;color:#1a1a2e;min-height:100vh;width:100vw}
@@ -149,7 +159,7 @@
 <div id="sidebar" class="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-logo">
-      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:52px;width:auto;object-fit:contain;object-position:center"/>
+      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:64px;width:auto;object-fit:contain;object-position:center"/>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -193,7 +203,7 @@
       <span></span><span></span><span></span>
     </button>
     <div class="topbar-logo">
-      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:44px;width:auto;object-fit:contain;object-position:center"/>
+      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:56px;width:auto;object-fit:contain;object-position:center"/>
     </div>
   </div>
   <div class="topbar-right">
@@ -415,7 +425,8 @@
     });
     document.getElementById('sidebar').addEventListener('click', function(e){
       e.stopPropagation();
-    });
+      e.preventDefault();
+    }, true); // true = capture phase, intercepta antes que FunnelUp
   });
 
   // NAV

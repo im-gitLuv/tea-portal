@@ -8,7 +8,8 @@
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
   html,body{height:100%;width:100%}
-  body{font-family:'Work Sans',sans-serif;min-height:100vh;background:linear-gradient(145deg,#0F145B 0%,#283A97 55%,#4789C8 100%);display:flex;align-items:center;justify-content:center;padding:24px}
+  body{font-family:'Work Sans',sans-serif;margin:0;padding:0}
+  .tea-login-wrapper{min-height:100vh;background:linear-gradient(145deg,#0F145B 0%,#283A97 55%,#4789C8 100%);display:flex;align-items:center;justify-content:center;padding:24px;width:100%;box-sizing:border-box}
   .card{background:#fff;border-radius:20px;padding:44px 40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(15,20,91,0.3);text-align:center}
   .logo-sym{display:inline-flex;align-items:center;justify-content:center;width:56px;height:56px;background:#EA0029;border-radius:14px;font-size:32px;font-weight:700;color:#fff;margin-bottom:10px}
   .logo-name{display:block;font-size:10px;font-weight:700;letter-spacing:2.5px;text-transform:uppercase;color:#0F145B;margin-bottom:28px}
@@ -36,12 +37,11 @@
   .step-dot{width:8px;height:8px;border-radius:50%;background:#e2e6f0}
   .step-dot.active{background:#EA0029;width:20px;border-radius:4px}
   .step-dot.done{background:#2a7a3a}
-  
 </style>
 </head>
 <body>
-<div class="card">
-  <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" style="height:64px;width:auto;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto;border-radius:12px" alt="Talk English Academy"/>
+<div class="tea-login-wrapper"><div class="card">
+  <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" style="height:64px;width:auto;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto" alt="Talk English Academy"/>
   <span class="logo-name">Talk English Academy</span>
 
   <!-- PANTALLA 1: LOGIN -->
@@ -286,5 +286,5 @@
     }
   }
 </script>
-</body>
+</div></body>
 </html>
