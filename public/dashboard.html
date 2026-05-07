@@ -143,13 +143,13 @@
 <body>
 
 <!-- SIDEBAR OVERLAY -->
-<div id="overlay" class="sidebar-overlay" onclick="closeSidebar()"></div>
+<div id="overlay" class="sidebar-overlay" id="overlay"></div>
 
 <!-- SIDEBAR -->
 <div id="sidebar" class="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-logo">
-      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:36px;width:auto;filter:brightness(0) invert(1)"/>
+      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:52px;width:auto;object-fit:contain;object-position:center"/>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -193,7 +193,7 @@
       <span></span><span></span><span></span>
     </button>
     <div class="topbar-logo">
-      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:32px;width:auto"/>
+      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:44px;width:auto;object-fit:contain;object-position:center"/>
     </div>
   </div>
   <div class="topbar-right">
@@ -400,8 +400,23 @@
   }
 
   // SIDEBAR
-  function openSidebar(){ document.getElementById('sidebar').classList.add('open'); document.getElementById('overlay').classList.add('open'); }
-  function closeSidebar(){ document.getElementById('sidebar').classList.remove('open'); document.getElementById('overlay').classList.remove('open'); }
+  function openSidebar(){
+    document.getElementById('sidebar').classList.add('open');
+    document.getElementById('overlay').classList.add('open');
+  }
+  function closeSidebar(){
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+  }
+  // Only close sidebar when clicking the overlay (outside sidebar area)
+  document.addEventListener('DOMContentLoaded', function(){
+    document.getElementById('overlay').addEventListener('click', function(e){
+      closeSidebar();
+    });
+    document.getElementById('sidebar').addEventListener('click', function(e){
+      e.stopPropagation();
+    });
+  });
 
   // NAV
   var currentPage = 'home';
