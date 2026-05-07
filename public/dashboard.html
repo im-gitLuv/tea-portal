@@ -26,7 +26,7 @@
 
   /* SIDEBAR */
   .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;opacity:0;transition:opacity .3s;pointer-events:none}
-  .sidebar-overlay.open{display:block;opacity:1;pointer-events:auto}
+  .sidebar-overlay.open{display:block;opacity:1;pointer-events:none}
   .sidebar{position:fixed;left:-280px;top:0;bottom:0;width:280px;background:#0F145B;z-index:500;transition:left .3s ease;display:flex;flex-direction:column;overflow-y:auto}
   .sidebar.open{left:0}
   .sidebar-header{padding:20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -404,18 +404,28 @@
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('overlay').classList.add('open');
   }
+
   function closeSidebar(){
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('overlay').classList.remove('open');
   }
-  // Only close sidebar when clicking the overlay (outside sidebar area)
+
+  // FunnelUp fix:
+  // NO cerrar sidebar al hacer click fuera.
+  // Solo cerrar con botón X.
   document.addEventListener('DOMContentLoaded', function(){
-    document.getElementById('overlay').addEventListener('click', function(e){
-      closeSidebar();
-    });
+
+    // Evita propagación completa
     document.getElementById('sidebar').addEventListener('click', function(e){
       e.stopPropagation();
     });
+
+    // Bloquea clicks del overlay
+    document.getElementById('overlay').addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
   });
 
   // NAV
