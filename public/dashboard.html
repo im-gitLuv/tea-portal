@@ -409,18 +409,28 @@
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('overlay').classList.add('open');
   }
+
   function closeSidebar(){
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('overlay').classList.remove('open');
   }
-  // Only close sidebar when clicking the overlay (outside sidebar area)
+
+  // FunnelUp fix:
+  // NO cerrar sidebar al hacer click fuera.
+  // Solo cerrar con botón X.
   document.addEventListener('DOMContentLoaded', function(){
-    document.getElementById('overlay').addEventListener('click', function(e){
-      closeSidebar();
-    });
+
+    // Evita propagación completa
     document.getElementById('sidebar').addEventListener('click', function(e){
       e.stopPropagation();
     });
+
+    // Bloquea clicks del overlay
+    document.getElementById('overlay').addEventListener('click', function(e){
+      e.preventDefault();
+      e.stopPropagation();
+    });
+
   });
 
   // NAV
