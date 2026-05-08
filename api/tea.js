@@ -690,7 +690,7 @@ module.exports = async function handler(req, res) {
               <p style="color:#0F145B;font-weight:600;margin:0 0 8px">Descripción:</p>
               <div style="background:#fff;border:1px solid #e2e6f0;border-radius:8px;padding:16px;color:#444;line-height:1.6;margin-bottom:24px">${descripcion}</div>
               <a href="${airtableLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-bottom:16px">Abrir en Airtable →</a>
-              <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0">Para responder: abre el ticket en Airtable, escribe tu respuesta en el campo <strong>Respuesta</strong> y cambia el <strong>Estado</strong> a "Respondido". El estudiante verá la respuesta al revisar su ticket.</p>
+              <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0">Para responder: abre el ticket en Airtable y añade un registro en la tabla <strong>Mensajes</strong> con Autor "TEA". El estudiante verá tu respuesta en el chat de su portal.</p>
             </div>
           </div>`
         );
@@ -735,7 +735,6 @@ module.exports = async function handler(req, res) {
             tema:        r.fields.Tema        || '',
             tipo:        r.fields.Tipo        || '',
             descripcion: r.fields.Descripcion || '',
-            respuesta:   r.fields.Respuesta   || '',
             estado:      r.fields.Estado      || 'Abierto',
             fecha:       r.fields.FechaCreacion || '',
           }));
@@ -758,6 +757,12 @@ module.exports = async function handler(req, res) {
             autor:     r.fields.Autor     || 'Estudiante',
             contenido: r.fields.Contenido || '',
             fecha:     r.fields.Fecha     || '',
+            adjuntos:  (r.fields.Adjuntos || []).map(a => ({
+              url:      a.url,
+              nombre:   a.filename,
+              tipo:     a.type,
+              miniatura: a.thumbnails?.large?.url || a.thumbnails?.small?.url || null,
+            })),
           }));
           return send(res, 200, { ok: true, mensajes });
         } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
@@ -765,24 +770,35 @@ module.exports = async function handler(req, res) {
 
       // ── HELPDESK: ESTUDIANTE RESPONDE TICKET ─────────────────────────────
       case 'helpdesk_responder': {
-        const { ticketId, contenido, email, nombre, tema } = req.body || {};
+        const { ticketId, contenido, email, nombre, tema, adjuntos } = req.body || {};
         if (!ticketId || !contenido) return send(res, 400, { ok: false, error: 'Datos incompletos' });
         try {
+          // Construir campos del mensaje
+          const msgFields = {
+            TicketId:  ticketId,
+            Autor:     'Estudiante',
+            Contenido: contenido,  // HTML enriquecido desde Quill
+            Fecha:     new Date().toISOString().split('T')[0],
+          };
+
+          // Adjuntos: el front envía array de { url, nombre } (URLs públicas ya subidas)
+          // Airtable acepta attachments como array de { url, filename }
+          if (adjuntos && adjuntos.length > 0) {
+            msgFields.Adjuntos = adjuntos.map(a => ({ url: a.url, filename: a.nombre }));
+          }
+
           // 1. Guardar mensaje en Mensajes
-          await airtableMensajes('POST', '', {
-            records: [{ fields: {
-              TicketId:  ticketId,
-              Autor:     'Estudiante',
-              Contenido: contenido,
-              Fecha:     new Date().toISOString().split('T')[0],
-            }}]
-          });
+          await airtableMensajes('POST', '', { records: [{ fields: msgFields }] });
+
           // 2. Cambiar estado a Pendiente en Tickets
-          await airtable('PATCH', `/${ticketId}`, {
-            fields: { Estado: 'Pendiente' }
-          });
+          await airtable('PATCH', `/${ticketId}`, { fields: { Estado: 'Pendiente' } });
+
           // 3. Notificar a TEA por email
           const airtableLink = `https://airtable.com/${AIRTABLE_BASE}/${AIRTABLE_TABLE}/${ticketId}`;
+          const adjuntosHtml = (adjuntos && adjuntos.length > 0)
+            ? `<p style="margin:12px 0 4px;color:#0F145B;font-weight:600">Archivos adjuntos:</p>
+               <ul style="margin:0;padding-left:18px;color:#444">${adjuntos.map(a => `<li><a href="${a.url}">${a.nombre}</a></li>`).join('')}</ul>`
+            : '';
           await enviarEmail(
             'yo.luisgonzalez_closer@outlook.com',
             `💬 Respuesta del estudiante — ${tema || 'Ticket'}`,
@@ -794,8 +810,9 @@ module.exports = async function handler(req, res) {
               <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
                 <h2 style="color:#0F145B;margin:0 0 16px">El estudiante respondió</h2>
                 <p style="color:#6b7280;margin:0 0 16px"><strong>${nombre || email}</strong> ha respondido en su ticket.</p>
-                <div style="background:#f4f6fb;border-radius:8px;padding:16px;margin-bottom:20px;color:#444;line-height:1.6">${contenido}</div>
-                <a href="${airtableLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700">Ver en Airtable →</a>
+                <div style="background:#f4f6fb;border-radius:8px;padding:16px;margin-bottom:16px;color:#444;line-height:1.6">${contenido}</div>
+                ${adjuntosHtml}
+                <a href="${airtableLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-top:20px">Ver en Airtable →</a>
               </div>
             </div>`
           );
@@ -803,7 +820,47 @@ module.exports = async function handler(req, res) {
         } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
       }
 
-      // ── HELPDESK: CERRAR TICKET ───────────────────────────────────────────
+      // ── HELPDESK: SUBIR ADJUNTO ───────────────────────────────────────────
+      // Recibe el archivo como base64 en el body y lo sube a Airtable directamente
+      // usando el endpoint de upload de attachments de Airtable.
+      case 'helpdesk_upload': {
+        const { ticketId, archivoBase64, nombreArchivo, mimeType } = req.body || {};
+        if (!archivoBase64 || !nombreArchivo || !mimeType) {
+          return send(res, 400, { ok: false, error: 'Datos incompletos' });
+        }
+        try {
+          // Subir a Airtable Attachments API (Content-addressed uploads)
+          const uploadRes = await fetch(
+            `https://content.airtable.com/v0/${AIRTABLE_BASE}/uploadAttachment`,
+            {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                contentType: mimeType,
+                filename:    nombreArchivo,
+                file:        archivoBase64,
+              }),
+            }
+          );
+          if (!uploadRes.ok) {
+            const t = await uploadRes.text();
+            throw new Error(`Upload error ${uploadRes.status}: ${t}`);
+          }
+          const uploadData = await uploadRes.json();
+          // Devolver la URL pública del adjunto
+          return send(res, 200, {
+            ok:     true,
+            url:    uploadData.url,
+            nombre: nombreArchivo,
+            tipo:   mimeType,
+          });
+        } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
+      }
+
+
       case 'helpdesk_cerrar': {
         const { ticketId } = req.body || {};
         if (!ticketId) return send(res, 400, { ok: false, error: 'ticketId requerido' });
