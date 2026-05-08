@@ -561,7 +561,7 @@
     // Botón cerrar ticket si está respondido
     var btnCerrar = '';
     if(t.estado === 'Respondido'){
-      btnCerrar = '<button class="btn-primary" style="margin-top:16px;width:auto;padding:10px 20px;font-size:13px" onclick="cerrarTicket(''+t.id+'','+i+')">✓ Marcar como cerrado</button>';
+      btnCerrar = '<button class="btn-primary" style="margin-top:16px;width:auto;padding:10px 20px;font-size:13px" onclick="cerrarTicket(\''+t.id+'\','+i+')">✓ Marcar como cerrado</button>';
     }
 
     document.getElementById('det-mensajes').innerHTML = msgs + btnCerrar;
