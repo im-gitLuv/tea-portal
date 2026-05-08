@@ -41,7 +41,7 @@
 </head>
 <body>
 <div class="tea-login-wrapper"><div class="card">
-  <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" style="height:64px;width:auto;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto;border-radius:12px" alt="Talk English Academy"/>
+  <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" style="height:64px;width:auto;margin-bottom:12px;display:block;margin-left:auto;margin-right:auto" alt="Talk English Academy"/>
   <span class="logo-name">Talk English Academy</span>
 
   <!-- PANTALLA 1: LOGIN -->
@@ -155,6 +155,15 @@
       return document.getElementById(id).value;
     }).join('');
   }
+
+  // Si viene del dashboard con flag de cambio de contraseña
+  (function(){
+    var goto = sessionStorage.getItem('tea_goto');
+    if (goto === 'forgot') {
+      sessionStorage.removeItem('tea_goto');
+      ir('s-forgot-email');
+    }
+  })();
 
   document.addEventListener('keydown', function(e){
     if (e.key === 'Enter' && document.getElementById('s-login').classList.contains('active')) doLogin();
@@ -286,5 +295,5 @@
     }
   }
 </script>
-</div></body>
+</body>
 </html>

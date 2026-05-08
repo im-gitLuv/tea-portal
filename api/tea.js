@@ -3,6 +3,22 @@ const FUNNELUP_API = 'https://services.leadconnectorhq.com';
 const LOCATION_ID  = '9cXtL7yJiTR3U0C2xmDt';
 const API_KEY      = process.env.FUNNELUP_API_KEY;
 
+const AIRTABLE_BASE  = 'appjZ1AVAx3YonC6O';
+const AIRTABLE_TABLE = 'tblLA7SNjWODGlqFa';
+
+async function airtable(method, path, body) {
+  const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}${path}`, {
+    method,
+    headers: {
+      'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+      'Content-Type':  'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`Airtable ${res.status}: ${t}`); }
+  return res.json();
+}
+
 const PROFESORES = [
   { nombre: 'Daniela Guzman',     userId: '8nZnZoJ4THtn2KwuFiqD', email: 'gladismarguzman@gmail.com'       },
   { nombre: 'David Gonzalez',     userId: 'ruaficj9PgvxfYsy0NfX', email: 'davidsecundaria20@gmail.com'     },
@@ -599,16 +615,39 @@ module.exports = async function handler(req, res) {
       }
 
 
-      // ── HELPDESK TICKET ──────────────────────────────────────────────────
+      // ── HELPDESK: CREAR TICKET ───────────────────────────────────────────
       case 'helpdesk_ticket': {
         const { nombre, email, tema, tipo, descripcion, studentId } = req.body || {};
         if (!nombre || !email || !tema || !descripcion) {
           return send(res, 400, { ok: false, error: 'Datos incompletos' });
         }
         const tipoLabel = { pregunta:'Pregunta', problema_tecnico:'Problema técnico', incidente:'Incidente', feature_request:'Sugerencia' };
+
+        // 1. Guardar en Airtable
+        let ticketId = null;
+        try {
+          const rec = await airtable('POST', '', {
+            records: [{
+              fields: {
+                Nombre:        nombre,
+                Email:         email,
+                StudentId:     studentId || '',
+                Tema:          tema,
+                Tipo:          tipoLabel[tipo] || tipo,
+                Descripcion:   descripcion,
+                Estado:        'Abierto',
+                FechaCreacion: new Date().toISOString().split('T')[0],
+              }
+            }]
+          });
+          ticketId = rec.records?.[0]?.id;
+        } catch(atErr) { console.error('Airtable error:', atErr.message); }
+
+        // 2. Email de notificación a TEA con link directo a Airtable
+        const airtableLink = `https://airtable.com/${AIRTABLE_BASE}/${AIRTABLE_TABLE}/${ticketId || ''}`;
         await enviarEmail(
           'yo.luisgonzalez_closer@outlook.com',
-          `🎫 Nuevo ticket: ${tema}`,
+          `🎫 Nuevo ticket [${tipoLabel[tipo]||tipo}]: ${tema}`,
           `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
             <div style="background:#0F145B;padding:20px 28px;border-radius:12px 12px 0 0">
               <span style="color:#EA0029;font-weight:700;font-size:16px">TALK</span>
@@ -623,11 +662,71 @@ module.exports = async function handler(req, res) {
                 <p style="margin:0;color:#0F145B"><strong>🏷️ Tipo:</strong> ${tipoLabel[tipo] || tipo}</p>
               </div>
               <p style="color:#0F145B;font-weight:600;margin:0 0 8px">Descripción:</p>
-              <div style="background:#fff;border:1px solid #e2e6f0;border-radius:8px;padding:16px;color:#444;line-height:1.6">${descripcion}</div>
+              <div style="background:#fff;border:1px solid #e2e6f0;border-radius:8px;padding:16px;color:#444;line-height:1.6;margin-bottom:24px">${descripcion}</div>
+              <a href="${airtableLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-bottom:16px">Abrir en Airtable →</a>
+              <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0">Para responder: abre el ticket en Airtable, escribe tu respuesta en el campo <strong>Respuesta</strong> y cambia el <strong>Estado</strong> a "Respondido". El estudiante verá la respuesta al revisar su ticket.</p>
             </div>
           </div>`
         );
-        return send(res, 200, { ok: true, mensaje: 'Ticket enviado' });
+
+        // 3. Email de confirmación al estudiante
+        await enviarEmail(
+          email,
+          `✅ Recibimos tu ticket: ${tema}`,
+          `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
+            <div style="background:#0F145B;padding:20px 28px;border-radius:12px 12px 0 0">
+              <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" style="height:36px;display:block;margin-bottom:8px" alt="TEA"/>
+              <span style="color:#EA0029;font-weight:700;font-size:16px">TALK</span>
+              <span style="color:#fff;font-weight:700;font-size:16px"> ENGLISH ACADEMY</span>
+            </div>
+            <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
+              <h2 style="color:#0F145B;margin:0 0 8px">¡Ticket recibido! 🎫</h2>
+              <p style="color:#6b7280;margin:0 0 20px;line-height:1.6">Hola <strong>${nombre.split(' ')[0]}</strong>, hemos recibido tu consulta. Nuestro equipo la revisará y te responderá lo antes posible.</p>
+              <div style="background:#f4f6fb;border-radius:10px;padding:16px;margin-bottom:20px">
+                <p style="margin:0 0 6px;color:#0F145B"><strong>📋 Tema:</strong> ${tema}</p>
+                <p style="margin:0;color:#0F145B"><strong>🏷️ Tipo:</strong> ${tipoLabel[tipo] || tipo}</p>
+              </div>
+              <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0 0 20px">Puedes revisar el estado de tu ticket y ver nuestra respuesta en cualquier momento desde la sección <strong>Help Desk</strong> de tu portal.</p>
+              <a href="https://talkenglishaca.com/studentsarea/login" style="display:inline-block;background:#283A97;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700">Ver mi portal →</a>
+            </div>
+          </div>`
+        );
+
+        return send(res, 200, { ok: true, ticketId, mensaje: 'Ticket creado' });
+      }
+
+      // ── HELPDESK: OBTENER TICKETS DEL ESTUDIANTE ─────────────────────────
+      case 'helpdesk_tickets': {
+        const { studentId } = req.query;
+        if (!studentId) return send(res, 400, { ok: false, error: 'studentId requerido' });
+        try {
+          const filterFormula = encodeURIComponent(`{StudentId}="${studentId}"`);
+          const data = await airtable('GET', `?filterByFormula=${filterFormula}&sort[0][field]=FechaCreacion&sort[0][direction]=desc`);
+          const tickets = (data.records || []).map(r => ({
+            id:          r.id,
+            nombre:      r.fields.Nombre      || '',
+            email:       r.fields.Email       || '',
+            tema:        r.fields.Tema        || '',
+            tipo:        r.fields.Tipo        || '',
+            descripcion: r.fields.Descripcion || '',
+            respuesta:   r.fields.Respuesta   || '',
+            estado:      r.fields.Estado      || 'Abierto',
+            fecha:       r.fields.FechaCreacion || '',
+          }));
+          return send(res, 200, { ok: true, tickets });
+        } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
+      }
+
+      // ── HELPDESK: CERRAR TICKET ───────────────────────────────────────────
+      case 'helpdesk_cerrar': {
+        const { ticketId } = req.body || {};
+        if (!ticketId) return send(res, 400, { ok: false, error: 'ticketId requerido' });
+        try {
+          await airtable('PATCH', `/${ticketId}`, {
+            fields: { Estado: 'Cerrado' }
+          });
+          return send(res, 200, { ok: true });
+        } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
       }
 
       default:

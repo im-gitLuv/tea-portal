@@ -26,7 +26,7 @@
 
   /* SIDEBAR */
   .sidebar-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:300;display:none;opacity:0;transition:opacity .3s;pointer-events:none}
-  .sidebar-overlay.open{display:block;opacity:1;pointer-events:none}
+  .sidebar-overlay.open{display:block;opacity:1;pointer-events:auto}
   .sidebar{position:fixed;left:-280px;top:0;bottom:0;width:280px;background:#0F145B;z-index:500;transition:left .3s ease;display:flex;flex-direction:column;overflow-y:auto}
   .sidebar.open{left:0}
   .sidebar-header{padding:20px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(255,255,255,.1)}
@@ -149,7 +149,7 @@
 <div id="sidebar" class="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-logo">
-      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:64px;width:auto;object-fit:contain;object-position:center"/>
+      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:52px;width:auto;object-fit:contain;object-position:center"/>
     </div>
     <button class="sidebar-close" onclick="closeSidebar()">✕</button>
   </div>
@@ -193,7 +193,7 @@
       <span></span><span></span><span></span>
     </button>
     <div class="topbar-logo">
-      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:56px;width:auto;object-fit:contain;object-position:center"/>
+      <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e41954c56ad27908bfc4c6.png" alt="Talk English Academy" style="height:44px;width:auto;object-fit:contain;object-position:center"/>
     </div>
   </div>
   <div class="topbar-right">
@@ -355,7 +355,7 @@
               <div class="config-row-label">Cambiar contraseña</div>
               <div class="config-row-sub">Recibirás un código en tu correo para confirmar el cambio</div>
             </div>
-            <button class="btn-secondary" onclick="irAlLogin()">Cambiar</button>
+            <button class="btn-secondary" onclick="irAlCambioPassword()">Cambiar</button>
           </div>
         </div>
         <div class="config-section">
@@ -389,6 +389,11 @@
 
   function irA(p){ window.location.replace(esFunnelUp ? '/studentsarea/'+p : p+'.html'); }
   function irAlLogin(){ window.location.replace(esFunnelUp ? '/studentsarea/login' : 'index.html'); }
+  function irAlCambioPassword(){
+    // Guardar flag para que el login abra directo en forgot password
+    sessionStorage.setItem('tea_goto', 'forgot');
+    window.location.replace(esFunnelUp ? '/studentsarea/login' : 'index.html');
+  }
 
   var raw = sessionStorage.getItem('tea_student');
   if (!raw) { irAlLogin(); }
@@ -404,28 +409,18 @@
     document.getElementById('sidebar').classList.add('open');
     document.getElementById('overlay').classList.add('open');
   }
-
   function closeSidebar(){
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('overlay').classList.remove('open');
   }
-
-  // FunnelUp fix:
-  // NO cerrar sidebar al hacer click fuera.
-  // Solo cerrar con botón X.
+  // Only close sidebar when clicking the overlay (outside sidebar area)
   document.addEventListener('DOMContentLoaded', function(){
-
-    // Evita propagación completa
+    document.getElementById('overlay').addEventListener('click', function(e){
+      closeSidebar();
+    });
     document.getElementById('sidebar').addEventListener('click', function(e){
       e.stopPropagation();
     });
-
-    // Bloquea clicks del overlay
-    document.getElementById('overlay').addEventListener('click', function(e){
-      e.preventDefault();
-      e.stopPropagation();
-    });
-
   });
 
   // NAV
@@ -517,40 +512,75 @@
     if(sec==='tickets') cargarTickets();
   }
 
-  // Tickets guardados localmente (sin backend dedicado por ahora)
-  function cargarTickets() {
-    var lista = document.getElementById('tickets-lista');
-    document.getElementById('tickets-loader').style.display = 'none';
-    var stored = JSON.parse(localStorage.getItem('tea_tickets_'+sessionStudent.id) || '[]');
-    tickets = stored;
-    if(!stored.length){
-      lista.innerHTML='<div style="text-align:center;padding:40px;color:var(--suave)">No tienes tickets aún.<br>¡Crea tu primero si necesitas ayuda!</div>';
-      return;
+  // HELPDESK — cargado desde Airtable via backend
+  async function cargarTickets() {
+    var lista   = document.getElementById('tickets-lista');
+    var loader  = document.getElementById('tickets-loader');
+    loader.style.display = 'flex';
+    lista.innerHTML = '';
+    try {
+      var res  = await fetch(API+'?action=helpdesk_tickets&studentId='+sessionStudent.id);
+      var data = await res.json();
+      loader.style.display = 'none';
+      if(!data.ok || !data.tickets.length){
+        lista.innerHTML='<div style="text-align:center;padding:40px;color:var(--suave)">No tienes tickets aún.<br>¡Crea tu primero si necesitas ayuda!</div>';
+        return;
+      }
+      tickets = data.tickets;
+      var statusClass = {Abierto:'ts-open',Pendiente:'ts-pending',Respondido:'ts-resolved',Cerrado:'ts-closed'};
+      lista.innerHTML = tickets.map(function(t,i){
+        var sc = statusClass[t.estado]||'ts-open';
+        var tieneRespuesta = t.respuesta ? '💬 ' : '';
+        return '<div class="ticket-card" onclick="verTicket('+i+')">'+
+          '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
+          '<span class="ticket-status '+sc+'">'+t.estado+'</span>'+
+          '<span style="font-size:11px;color:var(--suave)">'+t.fecha+'</span></div>'+
+          '<div style="font-size:14px;font-weight:700;color:#0F145B;margin-bottom:4px">'+tieneRespuesta+t.tema+'</div>'+
+          '<div style="font-size:12px;color:var(--suave)">'+t.tipo+'</div></div>';
+      }).join('');
+    } catch(e){
+      loader.style.display = 'none';
+      lista.innerHTML = '<div style="color:#a32d2d;padding:20px">Error al cargar tickets. Intenta de nuevo.</div>';
     }
-    lista.innerHTML = stored.map(function(t,i){
-      var statusClass = {abierto:'ts-open',pendiente:'ts-pending',respondido:'ts-resolved',cerrado:'ts-closed'}[t.status]||'ts-open';
-      var statusLabel = {abierto:'Abierto',pendiente:'Pendiente',respondido:'Respondido',cerrado:'Cerrado'}[t.status]||t.status;
-      return '<div class="ticket-card" onclick="verTicket('+i+')">'+
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">'+
-        '<span class="ticket-status '+statusClass+'">'+statusLabel+'</span>'+
-        '<span style="font-size:11px;color:var(--suave)">'+t.fecha+'</span></div>'+
-        '<div style="font-size:14px;font-weight:700;color:#0F145B;margin-bottom:4px">'+t.tema+'</div>'+
-        '<div style="font-size:12px;color:var(--suave)">'+t.tipo+'</div></div>';
-    }).join('');
   }
 
   function verTicket(i) {
     var t = tickets[i];
-    var statusClass = {abierto:'ts-open',pendiente:'ts-pending',respondido:'ts-resolved',cerrado:'ts-closed'}[t.status]||'ts-open';
-    var statusLabel = {abierto:'Abierto',pendiente:'Pendiente',respondido:'Respondido',cerrado:'Cerrado'}[t.status]||t.status;
+    var statusClass = {Abierto:'ts-open',Pendiente:'ts-pending',Respondido:'ts-resolved',Cerrado:'ts-closed'};
+    var sc = statusClass[t.estado]||'ts-open';
     document.getElementById('det-tema').textContent   = t.tema;
     document.getElementById('det-fecha').textContent  = t.fecha;
-    document.getElementById('det-status').textContent = statusLabel;
-    document.getElementById('det-status').className   = 'ticket-status '+statusClass;
-    var msgs = '<div class="ticket-msg"><strong>Tu mensaje:</strong><br>'+t.descripcion+'</div>';
-    if(t.respuesta) msgs += '<div class="ticket-reply"><strong>Respuesta de TEA:</strong><br>'+t.respuesta+'</div>';
-    document.getElementById('det-mensajes').innerHTML = msgs;
+    document.getElementById('det-status').textContent = t.estado;
+    document.getElementById('det-status').className   = 'ticket-status '+sc;
+
+    var msgs = '<div class="ticket-msg"><strong>Tu consulta:</strong><br><br>'+t.descripcion+'</div>';
+    if(t.respuesta){
+      msgs += '<div class="ticket-reply"><strong>✅ Respuesta de TEA:</strong><br><br>'+t.respuesta+'</div>';
+    }
+
+    // Botón cerrar ticket si está respondido
+    var btnCerrar = '';
+    if(t.estado === 'Respondido'){
+      btnCerrar = '<button class="btn-primary" style="margin-top:16px;width:auto;padding:10px 20px;font-size:13px" onclick="cerrarTicket(''+t.id+'','+i+')">✓ Marcar como cerrado</button>';
+    }
+
+    document.getElementById('det-mensajes').innerHTML = msgs + btnCerrar;
     mostrarSeccion('detalle');
+  }
+
+  async function cerrarTicket(ticketId, idx) {
+    try {
+      var res = await fetch(API+'?action=helpdesk_cerrar', {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ticketId}),
+      });
+      var data = await res.json();
+      if(data.ok){
+        tickets[idx].estado = 'Cerrado';
+        verTicket(idx); // Refrescar vista
+      }
+    } catch(e){ alert('Error al cerrar el ticket. Intenta de nuevo.'); }
   }
 
   async function enviarTicket() {
@@ -569,34 +599,26 @@
     }
 
     btn.disabled=true; btn.textContent='Enviando...';
-
-    // Guardar ticket localmente
-    var stored = JSON.parse(localStorage.getItem('tea_tickets_'+sessionStudent.id) || '[]');
-    var ticket = {
-      id: Date.now(),
-      nombre, email, tema, tipo, descripcion: desc,
-      status: 'abierto',
-      fecha: new Date().toLocaleDateString('es-ES',{day:'2-digit',month:'short',year:'numeric'}),
-      respuesta: null,
-    };
-    stored.unshift(ticket);
-    localStorage.setItem('tea_tickets_'+sessionStudent.id, JSON.stringify(stored));
-
-    // Enviar email de notificación a TEA via backend
     try {
-      await fetch(API+'?action=helpdesk_ticket', {
+      var res  = await fetch(API+'?action=helpdesk_ticket', {
         method:'POST',
         headers:{'Content-Type':'application/json'},
         body: JSON.stringify({nombre, email, tema, tipo, descripcion: desc, studentId: sessionStudent.id}),
       });
-    } catch(e){ console.error('Error notificando ticket:', e); }
+      var data = await res.json();
+      if(!data.ok) throw new Error(data.error);
 
-    ok.textContent='✓ Tu ticket fue enviado. Nuestro equipo lo revisará y recibirás una respuesta por correo.';
-    ok.style.display='block';
-    document.getElementById('hd-tema').value='';
-    document.getElementById('hd-tipo').value='';
-    document.getElementById('hd-descripcion').value='';
-    btn.disabled=false; btn.textContent='Enviar ticket';
+      ok.textContent='✓ Tu ticket fue enviado. Nuestro equipo lo revisará y recibirás una respuesta por correo.';
+      ok.style.display='block';
+      document.getElementById('hd-tema').value='';
+      document.getElementById('hd-tipo').value='';
+      document.getElementById('hd-descripcion').value='';
+    } catch(e){
+      err.textContent='Error al enviar el ticket. Intenta de nuevo.';
+      err.style.display='block';
+    } finally {
+      btn.disabled=false; btn.textContent='Enviar ticket';
+    }
   }
 
   function logout(){ sessionStorage.clear(); irAlLogin(); }
