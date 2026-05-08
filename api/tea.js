@@ -4,7 +4,8 @@ const LOCATION_ID  = '9cXtL7yJiTR3U0C2xmDt';
 const API_KEY      = process.env.FUNNELUP_API_KEY;
 
 const AIRTABLE_BASE  = 'appjZ1AVAx3YonC6O';
-const AIRTABLE_TABLE = 'tblLA7SNjWODGlqFa';
+const AIRTABLE_TABLE    = 'tblLA7SNjWODGlqFa';
+const AIRTABLE_RECURSOS = 'tblnLmpqvt37uAhYr';
 
 async function airtable(method, path, body) {
   const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}${path}`, {
@@ -727,6 +728,35 @@ module.exports = async function handler(req, res) {
           });
           return send(res, 200, { ok: true });
         } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
+      }
+
+
+      // ── BIBLIOTECA ───────────────────────────────────────────────────────
+      case 'biblioteca': {
+        try {
+          const res2 = await fetch(
+            `https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_RECURSOS}?filterByFormula={Activo}=1&sort[0][field]=Orden&sort[0][direction]=asc`,
+            { headers: { 'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}` } }
+          );
+          if (!res2.ok) { const t = await res2.text(); throw new Error(`Airtable ${res2.status}: ${t}`); }
+          const data2 = await res2.json();
+
+          const recursos = (data2.records || []).map(r => ({
+            id:        r.id,
+            titulo:    r.fields.Titulo    || '',
+            subtitulo: r.fields.Subtitulo || '',
+            tipo:      r.fields.Tipo      || '',
+            fase:      r.fields.Fase      || '',
+            emoji:     r.fields.Emoji     || '📄',
+            url:       r.fields.URL       || '',
+            orden:     r.fields.Orden     || 0,
+            serie:     r.fields.Serie     || '',
+          }));
+
+          return send(res, 200, { ok: true, recursos });
+        } catch(e) {
+          return send(res, 500, { ok: false, error: e.message });
+        }
       }
 
       default:

@@ -249,14 +249,19 @@
   <!-- BIBLIOTECA -->
   <div id="page-biblioteca" class="page">
     <div class="inner">
-      <p class="page-title">📚 Biblioteca</p>
-      <div class="lib-grid">
-        <div class="lib-card"><div class="lib-icon">🎬</div><div class="lib-titulo">Sonidos que no existen en español</div><div class="lib-meta">Fase 1 · 18 min</div><span class="lib-tipo lt-v">Video</span></div>
-        <div class="lib-card"><div class="lib-icon">📄</div><div class="lib-titulo">50 Frases de impacto en el trabajo</div><div class="lib-meta">Todas las fases · PDF</div><span class="lib-tipo lt-d">Documento</span></div>
-        <div class="lib-card"><div class="lib-icon">🎯</div><div class="lib-titulo">Respuestas instantáneas — Ejercicio</div><div class="lib-meta">Fase 2 · 20 min</div><span class="lib-tipo lt-a">Actividad</span></div>
-        <div class="lib-card"><div class="lib-icon">🎬</div><div class="lib-titulo">Cómo pedir un aumento en inglés</div><div class="lib-meta">Fase 4 · 25 min</div><span class="lib-tipo lt-v">Video</span></div>
-        <div class="lib-card"><div class="lib-icon">📄</div><div class="lib-titulo">Vocabulario de negociación laboral</div><div class="lib-meta">Fase 3 · PDF</div><span class="lib-tipo lt-d">Documento</span></div>
-        <div class="lib-card"><div class="lib-icon">🎯</div><div class="lib-titulo">Conversación simulada: entrevista</div><div class="lib-meta">Fase 3 · 30 min</div><span class="lib-tipo lt-a">Actividad</span></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px">
+        <p class="page-title" style="margin:0">📚 Biblioteca</p>
+        <div style="display:flex;gap:8px;flex-wrap:wrap" id="bib-filtros"></div>
+      </div>
+      <div id="bib-loader" style="display:flex;align-items:center;justify-content:center;padding:60px 0;flex-direction:column;gap:12px">
+        <div class="spinner"></div>
+        <span style="font-size:13px;color:var(--suave)">Cargando recursos...</span>
+      </div>
+      <div id="bib-grid" class="lib-grid" style="display:none"></div>
+      <div id="bib-serie" style="display:none">
+        <button class="btn-secondary" onclick="cerrarSerie()" style="margin-bottom:20px">← Volver</button>
+        <p class="page-title" id="bib-serie-titulo" style="margin-bottom:16px"></p>
+        <div id="bib-serie-grid" class="lib-grid"></div>
       </div>
     </div>
   </div>
@@ -442,7 +447,9 @@
     var navBtn = document.getElementById('nav-'+page);
     if(navBtn) navBtn.classList.add('active');
     currentPage = page;
-    if(page === 'helpdesk') mostrarSeccion('nuevo');
+    closeSidebar();
+    if(page === 'helpdesk')   mostrarSeccion('nuevo');
+    if(page === 'biblioteca') cargarBiblioteca();
   }
 
   // DASHBOARD DATA
@@ -628,6 +635,129 @@
     } finally {
       btn.disabled=false; btn.textContent='Enviar ticket';
     }
+  }
+
+
+  // ── BIBLIOTECA ────────────────────────────────────────────────────────────
+  var bibRecursos     = [];
+  var bibFiltroActivo = 'Todos';
+  var TIPO_CLASS_BIB  = { Video: 'lt-v', Documento: 'lt-d', Actividad: 'lt-a' };
+
+  async function cargarBiblioteca() {
+    if (bibRecursos.length > 0) { renderBiblioteca(); return; }
+    try {
+      var res  = await fetch(API + '?action=biblioteca');
+      var data = await res.json();
+      if (!data.ok) throw new Error(data.error);
+      bibRecursos = data.recursos;
+      renderFiltros();
+      renderBiblioteca();
+    } catch(e) {
+      document.getElementById('bib-loader').innerHTML =
+        '<p style="color:#a32d2d;font-size:13px">Error al cargar la biblioteca.</p>';
+    }
+  }
+
+  function renderFiltros() {
+    var fases = ['Todos'];
+    bibRecursos.forEach(function(r){ if (r.fase && fases.indexOf(r.fase) < 0) fases.push(r.fase); });
+    var html = '';
+    fases.forEach(function(f) {
+      var activo = f === bibFiltroActivo;
+      html += '<button onclick="filtrarBib(this,'' + f + '')" style="' +
+        'background:' + (activo ? '#0F145B' : '#f0f3ff') + ';' +
+        'color:' + (activo ? '#fff' : '#283A97') + ';' +
+        'border:1px solid ' + (activo ? '#0F145B' : '#283A97') + ';' +
+        'border-radius:20px;padding:5px 14px;font-size:11px;font-weight:700;' +
+        'cursor:pointer;font-family:inherit">' + f + '</button>';
+    });
+    document.getElementById('bib-filtros').innerHTML = html;
+  }
+
+  function filtrarBib(btn, fase) {
+    bibFiltroActivo = fase;
+    renderFiltros();
+    renderBiblioteca();
+  }
+
+  function renderBiblioteca() {
+    document.getElementById('bib-loader').style.display = 'none';
+    document.getElementById('bib-serie').style.display  = 'none';
+    document.getElementById('bib-grid').style.display   = 'grid';
+
+    var filtrados = bibFiltroActivo === 'Todos'
+      ? bibRecursos
+      : bibRecursos.filter(function(r) { return r.fase === bibFiltroActivo || r.fase === 'Todas'; });
+
+    var vistos = {};
+    var items  = [];
+    filtrados.forEach(function(r) {
+      if (r.serie) {
+        if (!vistos[r.serie]) {
+          vistos[r.serie] = true;
+          var count = bibRecursos.filter(function(x) { return x.serie === r.serie; }).length;
+          items.push({ tipo: 'serie', serie: r.serie, emoji: r.emoji,
+            titulo: r.serie, subtitulo: count + ' recursos', tipoTag: 'Serie', url: '' });
+        }
+      } else {
+        items.push(r);
+      }
+    });
+
+    if (!items.length) {
+      document.getElementById('bib-grid').innerHTML =
+        '<p style="color:var(--suave);font-size:13px;padding:20px 0">No hay recursos en esta fase todavía.</p>';
+      return;
+    }
+
+    var html = '';
+    items.forEach(function(item) {
+      var tc     = TIPO_CLASS_BIB[item.tipoTag || item.tipo] || 'lt-d';
+      var tag    = item.tipoTag || item.tipo;
+      var cursor = (item.tipo === 'serie' || item.url) ? 'pointer' : 'default';
+      var extra  = item.tipo === 'serie'
+        ? '<div style="font-size:11px;color:var(--azul);margin-top:6px;font-weight:600">Ver contenido →</div>' : '';
+      var onclick = '';
+      if (item.tipo === 'serie') {
+        onclick = 'onclick="abrirSerie(this)"  data-serie="' + item.serie + '"';
+      } else if (item.url) {
+        onclick = 'onclick="window.open(this.dataset.url,'_blank')" data-url="' + item.url + '"';
+      }
+      html += '<div class="lib-card" ' + onclick + ' style="cursor:' + cursor + '">' +
+        '<div class="lib-icon">' + item.emoji + '</div>' +
+        '<div class="lib-titulo">' + item.titulo + '</div>' +
+        '<div class="lib-meta">' + item.subtitulo + '</div>' +
+        '<span class="lib-tipo ' + tc + '">' + tag + '</span>' +
+        extra + '</div>';
+    });
+    document.getElementById('bib-grid').innerHTML = html;
+  }
+
+  function abrirSerie(el) {
+    var nombre = el.dataset.serie;
+    var items  = bibRecursos.filter(function(r) { return r.serie === nombre; });
+    document.getElementById('bib-grid').style.display    = 'none';
+    document.getElementById('bib-filtros').style.display = 'none';
+    document.getElementById('bib-serie').style.display   = 'block';
+    document.getElementById('bib-serie-titulo').textContent = nombre;
+    var html = '';
+    items.forEach(function(r) {
+      var tc     = TIPO_CLASS_BIB[r.tipo] || 'lt-d';
+      var cursor = r.url ? 'pointer' : 'default';
+      var onclick = r.url ? 'onclick="window.open(this.dataset.url,'_blank')" data-url="' + r.url + '"' : '';
+      html += '<div class="lib-card" ' + onclick + ' style="cursor:' + cursor + '">' +
+        '<div class="lib-icon">' + r.emoji + '</div>' +
+        '<div class="lib-titulo">' + r.titulo + '</div>' +
+        '<div class="lib-meta">' + r.subtitulo + '</div>' +
+        '<span class="lib-tipo ' + tc + '">' + r.tipo + '</span></div>';
+    });
+    document.getElementById('bib-serie-grid').innerHTML = html;
+  }
+
+  function cerrarSerie() {
+    document.getElementById('bib-serie').style.display   = 'none';
+    document.getElementById('bib-grid').style.display    = 'grid';
+    document.getElementById('bib-filtros').style.display = 'flex';
   }
 
   function logout(){ sessionStorage.clear(); irAlLogin(); }
