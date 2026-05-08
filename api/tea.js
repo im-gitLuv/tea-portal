@@ -821,43 +821,16 @@ module.exports = async function handler(req, res) {
       }
 
       // ── HELPDESK: SUBIR ADJUNTO ───────────────────────────────────────────
-      // Recibe el archivo como base64 en el body y lo sube a Airtable directamente
-      // usando el endpoint de upload de attachments de Airtable.
+      // El upload de archivos se hace DIRECTO desde el frontend a Cloudinary
+      // (unsigned upload preset). Este endpoint ya no se usa pero se mantiene
+      // como fallback de configuración por si el cliente necesita saber el preset.
       case 'helpdesk_upload': {
-        const { ticketId, archivoBase64, nombreArchivo, mimeType } = req.body || {};
-        if (!archivoBase64 || !nombreArchivo || !mimeType) {
-          return send(res, 400, { ok: false, error: 'Datos incompletos' });
-        }
-        try {
-          // Subir a Airtable Attachments API (Content-addressed uploads)
-          const uploadRes = await fetch(
-            `https://content.airtable.com/v0/${AIRTABLE_BASE}/uploadAttachment`,
-            {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                contentType: mimeType,
-                filename:    nombreArchivo,
-                file:        archivoBase64,
-              }),
-            }
-          );
-          if (!uploadRes.ok) {
-            const t = await uploadRes.text();
-            throw new Error(`Upload error ${uploadRes.status}: ${t}`);
-          }
-          const uploadData = await uploadRes.json();
-          // Devolver la URL pública del adjunto
-          return send(res, 200, {
-            ok:     true,
-            url:    uploadData.url,
-            nombre: nombreArchivo,
-            tipo:   mimeType,
-          });
-        } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
+        return send(res, 200, {
+          ok:      true,
+          cloud:   'dteaportal',
+          preset:  'tea_helpdesk',
+          mensaje: 'Usar Cloudinary unsigned upload directo desde el cliente.',
+        });
       }
 
 

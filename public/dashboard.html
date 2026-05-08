@@ -678,29 +678,78 @@
     renderAdjuntosPreview(destino);
   }
 
-  // Sube un archivo al backend y devuelve { url, nombre, tipo }
+  // ── UPLOAD: Cloudinary unsigned (directo desde el frontend) ────────────────
+  // Configuración de Cloudinary — upload preset "unsigned" sin autenticación
+  var CLOUDINARY_CLOUD = 'dyq5lleye';
+  var CLOUDINARY_PRESET = 'tea_helpdesk';
+
   async function subirArchivo(file) {
-    return new Promise(function(resolve, reject) {
-      var reader = new FileReader();
-      reader.onload = async function(e) {
-        var base64 = e.target.result.split(',')[1];
-        try {
-          var res = await fetch(API + '?action=helpdesk_upload', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              archivoBase64: base64,
-              nombreArchivo: file.name,
-              mimeType:      file.type || 'application/octet-stream',
-            }),
-          });
-          var data = await res.json();
-          if (!data.ok) reject(new Error(data.error));
-          else resolve({ url: data.url, nombre: data.nombre, tipo: data.tipo });
-        } catch(e) { reject(e); }
-      };
-      reader.readAsDataURL(file);
-    });
+    var formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', CLOUDINARY_PRESET);
+    formData.append('public_id', 'helpdesk/' + Date.now() + '_' + file.name.replace(/[^a-zA-Z0-9._-]/g, '_'));
+
+    var uploadUrl = 'https://api.cloudinary.com/v1_1/' + CLOUDINARY_CLOUD + '/auto/upload';
+    var res = await fetch(uploadUrl, { method: 'POST', body: formData });
+    if (!res.ok) {
+      var t = await res.text();
+      throw new Error('Upload error ' + res.status + ': ' + t);
+    }
+    var data = await res.json();
+    return {
+      url:    data.secure_url,
+      nombre: file.name,
+      tipo:   file.type || 'application/octet-stream',
+    };
+  }
+
+  // ── CONVERSOR: Markdown → HTML (para mensajes guardados desde Airtable) ────
+  // Airtable rich-text usa Markdown; Quill usa HTML.
+  // Los mensajes escritos DESDE Airtable llegan en Markdown → los convertimos a HTML.
+  // Los mensajes escritos DESDE el portal llegan en HTML (Quill) → ya están bien.
+  function mdAHtml(texto) {
+    if (!texto) return '';
+    // Si ya parece HTML (empieza con < o contiene tags) lo devolvemos tal cual
+    if (/^\s*</.test(texto) || /<(p|div|strong|em|ul|ol|h[1-6]|blockquote|pre|code)\b/i.test(texto)) {
+      return texto;
+    }
+    // Conversión básica Markdown → HTML
+    var h = texto
+      // Escapar solo lo necesario para no romper HTML posterior
+      // Bloques de código (``` ... ```)
+      .replace(/```([\s\S]*?)```/g, function(_, c){ return '<pre><code>' + c.trim() + '</code></pre>'; })
+      // Código inline
+      .replace(/`([^`]+)`/g, '<code>$1</code>')
+      // Encabezados
+      .replace(/^#{3}\s+(.+)$/gm, '<h3>$1</h3>')
+      .replace(/^#{2}\s+(.+)$/gm, '<h2>$1</h2>')
+      .replace(/^#{1}\s+(.+)$/gm, '<h1>$1</h1>')
+      // Negrita + cursiva
+      .replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>')
+      // Negrita
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      // Cursiva
+      .replace(/\*(.+?)\*/g, '<em>$1</em>')
+      .replace(/_([^_]+)_/g, '<em>$1</em>')
+      // Tachado
+      .replace(/~~(.+?)~~/g, '<s>$1</s>')
+      // Links
+      .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+      // Blockquote
+      .replace(/^>\s+(.+)$/gm, '<blockquote>$1</blockquote>')
+      // Listas ordenadas
+      .replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>')
+      // Listas no ordenadas
+      .replace(/^[-*]\s+(.+)$/gm, '<li>$1</li>')
+      // Envolver <li> sueltos en <ul>
+      .replace(/(<li>[\s\S]+?<\/li>)(\n(?!<li>)|$)/g, '<ul>$1</ul>')
+      // Párrafos: líneas que no son tags HTML
+      .replace(/^(?!<[a-z])(.*\S.*)$/gm, '<p>$1</p>')
+      // Limpiar párrafos vacíos
+      .replace(/<p>\s*<\/p>/g, '')
+      // Dobles blockquotes consecutivos
+      .replace(/<\/blockquote>\n?<blockquote>/g, '\n');
+    return h;
   }
 
   // HELPDESK — cargado desde Airtable via backend
@@ -781,7 +830,7 @@
       // Si no hay mensajes aún, mostramos la descripción como primer mensaje
       html += '<div class="ticket-msg">' +
         '<div style="font-size:11px;color:var(--suave);font-weight:700;margin-bottom:6px">Tú · ' + t.fecha + '</div>' +
-        '<div class="msg-rich">' + (t.descripcion || '') + '</div></div>';
+        '<div class="msg-rich">' + mdAHtml(t.descripcion || '') + '</div></div>';
     } else {
       mensajes.forEach(function(m) {
         var esTEA = m.autor === 'TEA';
@@ -790,7 +839,7 @@
           ? '<span style="font-size:11px;color:#4789C8;font-weight:700;margin-bottom:6px;display:block">TEA &middot; ' + m.fecha + '</span>'
           : '<span style="font-size:11px;color:var(--suave);font-weight:700;margin-bottom:6px;display:block">T&uacute; &middot; ' + m.fecha + '</span>';
         html += '<div class="' + cls + '">' + autor +
-          '<div class="msg-rich">' + (m.contenido || '') + '</div>' +
+          '<div class="msg-rich">' + mdAHtml(m.contenido || '') + '</div>' +
           renderAdjuntosMsg(m.adjuntos) +
           '</div>';
       });
