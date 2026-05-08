@@ -664,7 +664,7 @@
     var html = '';
     fases.forEach(function(f) {
       var activo = f === bibFiltroActivo;
-      html += '<button onclick="filtrarBib(this,'' + f + '')" style="' +
+      html += '<button onclick="filtrarBib(this)" data-fase="' + f + '" style="' +
         'background:' + (activo ? '#0F145B' : '#f0f3ff') + ';' +
         'color:' + (activo ? '#fff' : '#283A97') + ';' +
         'border:1px solid ' + (activo ? '#0F145B' : '#283A97') + ';' +
@@ -674,8 +674,8 @@
     document.getElementById('bib-filtros').innerHTML = html;
   }
 
-  function filtrarBib(btn, fase) {
-    bibFiltroActivo = fase;
+  function filtrarBib(btn) {
+    bibFiltroActivo = btn.dataset.fase;
     renderFiltros();
     renderBiblioteca();
   }
@@ -721,7 +721,7 @@
       if (item.tipo === 'serie') {
         onclick = 'onclick="abrirSerie(this)"  data-serie="' + item.serie + '"';
       } else if (item.url) {
-        onclick = 'onclick="window.open(this.dataset.url,'_blank')" data-url="' + item.url + '"';
+        onclick = 'onclick="abrirUrl(this)" data-url="' + item.url + '"';
       }
       html += '<div class="lib-card" ' + onclick + ' style="cursor:' + cursor + '">' +
         '<div class="lib-icon">' + item.emoji + '</div>' +
@@ -744,7 +744,7 @@
     items.forEach(function(r) {
       var tc     = TIPO_CLASS_BIB[r.tipo] || 'lt-d';
       var cursor = r.url ? 'pointer' : 'default';
-      var onclick = r.url ? 'onclick="window.open(this.dataset.url,'_blank')" data-url="' + r.url + '"' : '';
+      var onclick = r.url ? 'onclick="abrirUrl(this)" data-url="' + r.url + '"' : '';
       html += '<div class="lib-card" ' + onclick + ' style="cursor:' + cursor + '">' +
         '<div class="lib-icon">' + r.emoji + '</div>' +
         '<div class="lib-titulo">' + r.titulo + '</div>' +
@@ -752,6 +752,10 @@
         '<span class="lib-tipo ' + tc + '">' + r.tipo + '</span></div>';
     });
     document.getElementById('bib-serie-grid').innerHTML = html;
+  }
+
+  function abrirUrl(el) {
+    if (el.dataset.url) window.open(el.dataset.url, '_blank');
   }
 
   function cerrarSerie() {
