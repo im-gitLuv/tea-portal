@@ -560,44 +560,97 @@
     }
   }
 
-  function verTicket(i) {
+  var ticketActualIdx = null;
+
+  async function verTicket(i) {
+    ticketActualIdx = i;
     var t = tickets[i];
     var statusClass = {Abierto:'ts-open',Pendiente:'ts-pending',Respondido:'ts-resolved',Cerrado:'ts-closed'};
-    var sc = statusClass[t.estado]||'ts-open';
+    var sc = statusClass[t.estado] || 'ts-open';
     document.getElementById('det-tema').textContent   = t.tema;
     document.getElementById('det-fecha').textContent  = t.fecha;
     document.getElementById('det-status').textContent = t.estado;
-    document.getElementById('det-status').className   = 'ticket-status '+sc;
-
-    var msgs = '<div class="ticket-msg"><strong>Tu consulta:</strong><br><br>'+t.descripcion+'</div>';
-    if(t.respuesta){
-      msgs += '<div class="ticket-reply"><strong>✅ Respuesta de TEA:</strong><br><br>'+t.respuesta+'</div>';
-    }
-
-    // Botón cerrar ticket si está respondido
-    var btnCerrar = '';
-    if(t.estado === 'Respondido'){
-      btnCerrar = '<button class="btn-primary" style="margin-top:16px;width:auto;padding:10px 20px;font-size:13px" onclick="cerrarTicket(\''+t.id+'\','+i+')">✓ Marcar como cerrado</button>';
-    }
-
-    document.getElementById('det-mensajes').innerHTML = msgs + btnCerrar;
+    document.getElementById('det-status').className   = 'ticket-status ' + sc;
+    document.getElementById('det-mensajes').innerHTML =
+      '<div style="text-align:center;padding:20px"><div class="spinner" style="margin:0 auto"></div></div>';
     mostrarSeccion('detalle');
+    try {
+      var res  = await fetch(API + '?action=helpdesk_mensajes&ticketId=' + t.id);
+      var data = await res.json();
+      renderHilo(data.mensajes || [], t, i);
+    } catch(e) { renderHilo([], t, i); }
   }
 
-  async function cerrarTicket(ticketId, idx) {
+  function renderHilo(mensajes, t, i) {
+    var html = '';
+    if (!mensajes.length) {
+      html += '<div class="ticket-msg"><strong>Tu consulta:</strong><br><br>' + t.descripcion + '</div>';
+      if (t.respuesta) html += '<div class="ticket-reply"><strong>TEA:</strong><br><br>' + t.respuesta + '</div>';
+    } else {
+      mensajes.forEach(function(m) {
+        if (m.autor === 'TEA') {
+          html += '<div class="ticket-reply"><div style="font-size:11px;color:#4789C8;font-weight:700;margin-bottom:6px">TEA &middot; ' + m.fecha + '</div>' + m.contenido + '</div>';
+        } else {
+          html += '<div class="ticket-msg"><div style="font-size:11px;color:var(--suave);font-weight:700;margin-bottom:6px">T&uacute; &middot; ' + m.fecha + '</div>' + m.contenido + '</div>';
+        }
+      });
+    }
+    if (t.estado !== 'Cerrado') {
+      html += '<div style="margin-top:20px;border-top:1px solid var(--borde);padding-top:16px">' +
+        '<label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:#0F145B;display:block;margin-bottom:8px">Tu respuesta</label>' +
+        '<textarea id="det-resp-txt" style="width:100%;min-height:90px;padding:11px 14px;border:1.5px solid var(--borde);border-radius:10px;font-size:14px;font-family:inherit;outline:none;resize:vertical;color:#0F145B" placeholder="Escribe tu respuesta..."></textarea>' +
+        '<div style="display:flex;gap:10px;margin-top:10px;flex-wrap:wrap">' +
+        '<button class="btn-primary" style="padding:10px 20px;font-size:13px" data-idx="' + i + '" onclick="enviarRespuestaTicket(parseInt(this.dataset.idx))">Enviar respuesta</button>' +
+        '<button class="btn-secondary" style="padding:10px 20px;font-size:13px" data-idx="' + i + '" onclick="cerrarTicketDesdeDet(parseInt(this.dataset.idx))">Cerrar ticket</button>' +
+        '</div>' +
+        '<div id="det-resp-ok" style="display:none;margin-top:10px;background:#e8f4ea;color:#1a5c28;border-radius:8px;padding:10px 14px;font-size:13px"></div>' +
+        '<div id="det-resp-err" style="display:none;margin-top:10px;background:#fde8e8;color:#a32d2d;border-radius:8px;padding:10px 14px;font-size:13px"></div>' +
+        '</div>';
+    } else {
+      html += '<div style="margin-top:16px;text-align:center;color:var(--suave);font-size:13px;padding:12px;background:#f4f6fb;border-radius:8px">Este ticket est&aacute; cerrado.</div>';
+    }
+    document.getElementById('det-mensajes').innerHTML = html;
+  }
+
+  async function enviarRespuestaTicket(idx) {
+    var t   = tickets[idx];
+    var el  = document.getElementById('det-resp-txt');
+    var contenido = el ? el.value.trim() : '';
+    if (!contenido) return;
+    var ok  = document.getElementById('det-resp-ok');
+    var err = document.getElementById('det-resp-err');
+    ok.style.display = 'none'; err.style.display = 'none';
     try {
-      var res = await fetch(API+'?action=helpdesk_cerrar', {
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify({ticketId}),
+      var res = await fetch(API + '?action=helpdesk_responder', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ ticketId: t.id, contenido: contenido,
+          email: sessionStudent.email, nombre: sessionStudent.nombre, tema: t.tema }),
       });
       var data = await res.json();
-      if(data.ok){
-        tickets[idx].estado = 'Cerrado';
-        verTicket(idx); // Refrescar vista
-      }
-    } catch(e){ alert('Error al cerrar el ticket. Intenta de nuevo.'); }
+      if (!data.ok) throw new Error(data.error);
+      tickets[idx].estado = 'Pendiente';
+      ok.textContent = 'Respuesta enviada. Te notificaremos cuando TEA responda.';
+      ok.style.display = 'block';
+      setTimeout(function(){ verTicket(idx); }, 900);
+    } catch(e) {
+      err.textContent = 'Error al enviar. Intenta de nuevo.';
+      err.style.display = 'block';
+    }
   }
+
+  async function cerrarTicketDesdeDet(idx) {
+    var t = tickets[idx];
+    try {
+      var res  = await fetch(API + '?action=helpdesk_cerrar', {
+        method: 'POST', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ticketId: t.id}),
+      });
+      var data = await res.json();
+      if (data.ok) { tickets[idx].estado = 'Cerrado'; verTicket(idx); }
+    } catch(e) { alert('Error al cerrar el ticket.'); }
+  }
+
+  async function cerrarTicket(ticketId, idx) { await cerrarTicketDesdeDet(idx); }
 
   async function enviarTicket() {
     var nombre = document.getElementById('hd-nombre').value.trim();

@@ -6,6 +6,7 @@ const API_KEY      = process.env.FUNNELUP_API_KEY;
 const AIRTABLE_BASE  = 'appjZ1AVAx3YonC6O';
 const AIRTABLE_TABLE    = 'tblLA7SNjWODGlqFa';
 const AIRTABLE_RECURSOS = 'tblnLmpqvt37uAhYr';
+const AIRTABLE_MENSAJES = 'tblkfBe3U5yxcNaDK';
 
 async function airtable(method, path, body) {
   const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}${path}`, {
@@ -161,6 +162,19 @@ function generarCodigo() {
 }
 
 
+
+async function airtableMensajes(method, path, body) {
+  const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_MENSAJES}${path}`, {
+    method,
+    headers: {
+      'Authorization': `Bearer ${process.env.AIRTABLE_TOKEN}`,
+      'Content-Type':  'application/json',
+    },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) { const t = await res.text(); throw new Error(`Airtable Mensajes ${res.status}: ${t}`); }
+  return res.json();
+}
 // ─── email helper ────────────────────────────────────────────────────────────
 async function enviarEmail(to, subject, html) {
   try {
@@ -642,6 +656,17 @@ module.exports = async function handler(req, res) {
             }]
           });
           ticketId = rec.records?.[0]?.id;
+          // Guardar primer mensaje en Mensajes
+          if (ticketId) {
+            await airtableMensajes('POST', '', {
+              records: [{ fields: {
+                TicketId:  ticketId,
+                Autor:     'Estudiante',
+                Contenido: descripcion,
+                Fecha:     new Date().toISOString().split('T')[0],
+              }}]
+            }).catch(e => console.error('Error guardando mensaje inicial:', e.message));
+          }
         } catch(atErr) { console.error('Airtable error:', atErr.message); }
 
         // 2. Email de notificación a TEA con link directo a Airtable
@@ -715,6 +740,66 @@ module.exports = async function handler(req, res) {
             fecha:       r.fields.FechaCreacion || '',
           }));
           return send(res, 200, { ok: true, tickets });
+        } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
+      }
+
+
+      // ── HELPDESK: MENSAJES DE UN TICKET ──────────────────────────────────
+      case 'helpdesk_mensajes': {
+        const { ticketId } = req.query;
+        if (!ticketId) return send(res, 400, { ok: false, error: 'ticketId requerido' });
+        try {
+          const formula = encodeURIComponent(`{TicketId}="${ticketId}"`);
+          const data = await airtableMensajes('GET',
+            `?filterByFormula=${formula}&sort[0][field]=Fecha&sort[0][direction]=asc`
+          );
+          const mensajes = (data.records || []).map(r => ({
+            id:        r.id,
+            autor:     r.fields.Autor     || 'Estudiante',
+            contenido: r.fields.Contenido || '',
+            fecha:     r.fields.Fecha     || '',
+          }));
+          return send(res, 200, { ok: true, mensajes });
+        } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
+      }
+
+      // ── HELPDESK: ESTUDIANTE RESPONDE TICKET ─────────────────────────────
+      case 'helpdesk_responder': {
+        const { ticketId, contenido, email, nombre, tema } = req.body || {};
+        if (!ticketId || !contenido) return send(res, 400, { ok: false, error: 'Datos incompletos' });
+        try {
+          // 1. Guardar mensaje en Mensajes
+          await airtableMensajes('POST', '', {
+            records: [{ fields: {
+              TicketId:  ticketId,
+              Autor:     'Estudiante',
+              Contenido: contenido,
+              Fecha:     new Date().toISOString().split('T')[0],
+            }}]
+          });
+          // 2. Cambiar estado a Pendiente en Tickets
+          await airtable('PATCH', `/${ticketId}`, {
+            fields: { Estado: 'Pendiente' }
+          });
+          // 3. Notificar a TEA por email
+          const airtableLink = `https://airtable.com/${AIRTABLE_BASE}/${AIRTABLE_TABLE}/${ticketId}`;
+          await enviarEmail(
+            'yo.luisgonzalez_closer@outlook.com',
+            `💬 Respuesta del estudiante — ${tema || 'Ticket'}`,
+            `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
+              <div style="background:#0F145B;padding:20px 28px;border-radius:12px 12px 0 0">
+                <span style="color:#EA0029;font-weight:700;font-size:16px">TALK</span>
+                <span style="color:#fff;font-weight:700;font-size:16px"> ENGLISH ACADEMY — Help Desk</span>
+              </div>
+              <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
+                <h2 style="color:#0F145B;margin:0 0 16px">El estudiante respondió</h2>
+                <p style="color:#6b7280;margin:0 0 16px"><strong>${nombre || email}</strong> ha respondido en su ticket.</p>
+                <div style="background:#f4f6fb;border-radius:8px;padding:16px;margin-bottom:20px;color:#444;line-height:1.6">${contenido}</div>
+                <a href="${airtableLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700">Ver en Airtable →</a>
+              </div>
+            </div>`
+          );
+          return send(res, 200, { ok: true });
         } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
       }
 
