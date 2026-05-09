@@ -8,6 +8,12 @@ const AIRTABLE_TABLE    = 'tblLA7SNjWODGlqFa';
 const AIRTABLE_RECURSOS = 'tblnLmpqvt37uAhYr';
 const AIRTABLE_MENSAJES = 'tblkfBe3U5yxcNaDK';
 
+// ── Correos del equipo operador ── añade o comenta según necesites ──
+const EMAILS_OPERADOR = [
+  'yo.luisgonzalez_closer@outlook.com',
+  // janathaly16@gmail.com
+];
+
 async function airtable(method, path, body) {
   const res = await fetch(`https://api.airtable.com/v0/${AIRTABLE_BASE}/${AIRTABLE_TABLE}${path}`, {
     method,
@@ -671,10 +677,8 @@ module.exports = async function handler(req, res) {
 
         // 2. Email de notificación a TEA con link directo al panel de operador
         const adminLink = `https://talkenglishaca.com/studentsarea/admin#${ticketId || ''}`;
-        await enviarEmail(
-          'yo.luisgonzalez_closer@outlook.com',
-          `🎫 Nuevo ticket [${tipoLabel[tipo]||tipo}]: ${tema}`,
-          `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
+        const _asuntoNuevo = `🎫 Nuevo ticket [${tipoLabel[tipo]||tipo}]: ${tema}`;
+        const _htmlNuevo = `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
             <div style="background:#0F145B;padding:20px 28px;border-radius:12px 12px 0 0">
               <span style="color:#EA0029;font-weight:700;font-size:16px">TALK</span>
               <span style="color:#fff;font-weight:700;font-size:16px"> ENGLISH ACADEMY — Help Desk</span>
@@ -691,8 +695,10 @@ module.exports = async function handler(req, res) {
               <div style="background:#fff;border:1px solid #e2e6f0;border-radius:8px;padding:16px;color:#444;line-height:1.6;margin-bottom:24px">${descripcion}</div>
               <a href="${adminLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-bottom:16px">Abrir en panel de operador →</a>
             </div>
-          </div>`
-        );
+          </div>`;
+        for (const dest of EMAILS_OPERADOR) {
+          await enviarEmail(dest, _asuntoNuevo, _htmlNuevo);
+        }
 
         // 3. Email de confirmación al estudiante
         await enviarEmail(
@@ -798,10 +804,8 @@ module.exports = async function handler(req, res) {
             ? `<p style="margin:12px 0 4px;color:#0F145B;font-weight:600">Archivos adjuntos:</p>
                <ul style="margin:0;padding-left:18px;color:#444">${adjuntos.map(a => `<li><a href="${a.url}">${a.nombre}</a></li>`).join('')}</ul>`
             : '';
-          await enviarEmail(
-            'yo.luisgonzalez_closer@outlook.com',
-            `💬 Respuesta del estudiante — ${tema || 'Ticket'}`,
-            `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
+          const _asuntoResp = `💬 Respuesta del estudiante — ${tema || 'Ticket'}`;
+          const _htmlResp = `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
               <div style="background:#0F145B;padding:20px 28px;border-radius:12px 12px 0 0">
                 <span style="color:#EA0029;font-weight:700;font-size:16px">TALK</span>
                 <span style="color:#fff;font-weight:700;font-size:16px"> ENGLISH ACADEMY — Help Desk</span>
@@ -813,8 +817,10 @@ module.exports = async function handler(req, res) {
                 ${adjuntosHtml}
                 <a href="${adminLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-top:20px">Responder en panel de operador →</a>
               </div>
-            </div>`
-          );
+            </div>`;
+          for (const dest of EMAILS_OPERADOR) {
+            await enviarEmail(dest, _asuntoResp, _htmlResp);
+          }
           return send(res, 200, { ok: true });
         } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
       }
