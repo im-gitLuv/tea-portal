@@ -89,6 +89,7 @@ html,body{height:100%;font-family:'Work Sans',sans-serif;background:#f0f2f8;colo
 
 /* ── PANEL PRINCIPAL (chat) ─────────────────────────────────────── */
 .main{flex:1;display:flex;flex-direction:column;height:100vh;overflow:hidden;background:#f0f2f8}
+#main-ticket{flex:1;display:flex;flex-direction:column;overflow:hidden;min-height:0}
 
 /* Estado vacío */
 .main-empty{
@@ -162,14 +163,17 @@ html,body{height:100%;font-family:'Work Sans',sans-serif;background:#f0f2f8;colo
 /* Area de respuesta operador */
 .chat-reply{
   background:#fff;border-top:1px solid var(--borde);
-  padding:16px 24px;flex-shrink:0;
+  padding:16px 24px 20px;flex-shrink:0;
+  max-height:55vh;overflow-y:auto;
 }
+.chat-reply::-webkit-scrollbar{width:4px}
+.chat-reply::-webkit-scrollbar-thumb{background:#dde3f0;border-radius:4px}
 .reply-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--azul-o);margin-bottom:8px}
 
 /* Quill custom */
 .ql-toolbar.ql-snow{border:1.5px solid var(--borde);border-bottom:none;border-radius:10px 10px 0 0;background:#f8f9fe;padding:7px 10px;font-family:'Work Sans',sans-serif}
-.ql-container.ql-snow{border:1.5px solid var(--borde);border-top:none;border-radius:0 0 10px 10px;font-family:'Work Sans',sans-serif;font-size:13px;color:var(--azul-o);max-height:150px;overflow-y:auto}
-.ql-editor{min-height:70px;padding:10px 12px;line-height:1.6}
+.ql-container.ql-snow{border:1.5px solid var(--borde);border-top:none;border-radius:0 0 10px 10px;font-family:'Work Sans',sans-serif;font-size:13px;color:var(--azul-o);max-height:120px;overflow-y:auto}
+.ql-editor{min-height:60px;max-height:120px;padding:10px 12px;line-height:1.6}
 .ql-editor.ql-blank::before{color:#9ca3af;font-style:normal;font-size:13px}
 .ql-snow .ql-stroke{stroke:#283A97}.ql-snow .ql-fill{fill:#283A97}.ql-snow .ql-picker{color:#283A97}
 .ql-snow.ql-toolbar button:hover .ql-stroke,.ql-snow.ql-toolbar button.ql-active .ql-stroke{stroke:#EA0029}
@@ -260,7 +264,7 @@ html,body{height:100%;font-family:'Work Sans',sans-serif;background:#f0f2f8;colo
     </div>
 
     <!-- Vista de ticket activo -->
-    <div id="main-ticket" style="display:none;flex:1;flex-direction:column;overflow:hidden;display:none">
+    <div id="main-ticket" style="display:none">
 
       <!-- Cabecera -->
       <div class="chat-head">
@@ -421,9 +425,7 @@ async function abrirTicket(id) {
 
   // Mostrar panel
   document.getElementById('main-empty').style.display  = 'none';
-  var mt = document.getElementById('main-ticket');
-  mt.style.display = 'flex';
-  mt.style.flexDirection = 'column';
+  document.getElementById('main-ticket').style.display = 'flex';
 
   // Cabecera
   document.getElementById('ch-tema').textContent = ticketActual.tema;
@@ -672,7 +674,6 @@ function mdAHtml(texto) {
 function cerrarMobile() {
   document.getElementById('main-ticket').style.display = 'none';
   document.getElementById('main-empty').style.display  = 'flex';
-}
-</script>
+}</script>
 </body>
 </html>
