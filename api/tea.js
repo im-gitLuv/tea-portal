@@ -846,6 +846,101 @@ module.exports = async function handler(req, res) {
       }
 
 
+      // ── ADMIN: TODOS LOS TICKETS (sin filtro de estudiante) ──────────────
+      case 'admin_tickets': {
+        try {
+          const { buscar, estado, tipo } = req.query;
+          let formula = '';
+          const parts = [];
+          if (estado && estado !== 'Todos') parts.push(`{Estado}="${estado}"`);
+          if (tipo   && tipo   !== 'Todos') parts.push(`{Tipo}="${tipo}"`);
+          if (buscar) {
+            const q = buscar.replace(/"/g, '');
+            parts.push(`OR(SEARCH("${q}",LOWER({Tema})),SEARCH("${q}",LOWER({Nombre})),SEARCH("${q}",LOWER({Email})))`);
+          }
+          if (parts.length === 1) formula = encodeURIComponent(parts[0]);
+          else if (parts.length > 1) formula = encodeURIComponent(`AND(${parts.join(',')})`);
+
+          const url = formula
+            ? `?filterByFormula=${formula}&sort[0][field]=FechaCreacion&sort[0][direction]=desc`
+            : `?sort[0][field]=FechaCreacion&sort[0][direction]=desc`;
+
+          const data = await airtable('GET', url);
+          const tickets = (data.records || []).map(r => ({
+            id:          r.id,
+            nombre:      r.fields.Nombre       || '',
+            email:       r.fields.Email        || '',
+            tema:        r.fields.Tema         || '',
+            tipo:        r.fields.Tipo         || '',
+            descripcion: r.fields.Descripcion  || '',
+            estado:      r.fields.Estado       || 'Abierto',
+            fecha:       r.fields.FechaCreacion || '',
+            studentId:   r.fields.StudentId    || '',
+          }));
+          return send(res, 200, { ok: true, tickets });
+        } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
+      }
+
+      // ── ADMIN: CAMBIAR ESTADO DE TICKET ──────────────────────────────────
+      case 'admin_estado': {
+        const { ticketId, estado } = req.body || {};
+        if (!ticketId || !estado) return send(res, 400, { ok: false, error: 'Datos incompletos' });
+        const estadosValidos = ['Abierto','Pendiente','Respondido','Cerrado'];
+        if (!estadosValidos.includes(estado)) return send(res, 400, { ok: false, error: 'Estado no válido' });
+        try {
+          await airtable('PATCH', `/${ticketId}`, { fields: { Estado: estado } });
+          return send(res, 200, { ok: true });
+        } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
+      }
+
+      // ── ADMIN: TEA RESPONDE TICKET ────────────────────────────────────────
+      case 'admin_responder': {
+        const { ticketId, contenido, adjuntos, tema, nombreEstudiante, emailEstudiante } = req.body || {};
+        if (!ticketId || !contenido) return send(res, 400, { ok: false, error: 'Datos incompletos' });
+        try {
+          const msgFields = {
+            TicketId:  ticketId,
+            Autor:     'TEA',
+            Contenido: contenido,
+            Fecha:     new Date().toISOString().split('T')[0],
+          };
+          if (adjuntos && adjuntos.length > 0) {
+            msgFields.Adjuntos = adjuntos.map(a => ({ url: a.url, filename: a.nombre }));
+          }
+          // 1. Guardar mensaje TEA
+          await airtableMensajes('POST', '', { records: [{ fields: msgFields }] });
+          // 2. Cambiar estado a Respondido
+          await airtable('PATCH', `/${ticketId}`, { fields: { Estado: 'Respondido' } });
+          // 3. Notificar al estudiante si tenemos su email
+          if (emailEstudiante) {
+            const portalLink = 'https://talkenglishaca.com/studentsarea/dashboard';
+            const adjuntosHtml = (adjuntos && adjuntos.length > 0)
+              ? `<p style="margin:12px 0 4px;color:#0F145B;font-weight:600">Archivos adjuntos:</p>
+                 <ul style="margin:0;padding-left:18px;color:#444">${adjuntos.map(a => `<li><a href="${a.url}">${a.nombre}</a></li>`).join('')}</ul>`
+              : '';
+            await enviarEmail(
+              emailEstudiante,
+              `💬 TEA respondió tu ticket — ${tema || 'Soporte'}`,
+              `<div style="font-family:sans-serif;max-width:540px;margin:0 auto;padding:32px 24px">
+                <div style="background:#0F145B;padding:20px 28px;border-radius:12px 12px 0 0">
+                  <img src="https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69e4195450b9a3263af0ff71.jpg" style="height:36px;display:block;margin-bottom:8px" alt="TEA"/>
+                  <span style="color:#EA0029;font-weight:700;font-size:16px">TALK</span>
+                  <span style="color:#fff;font-weight:700;font-size:16px"> ENGLISH ACADEMY — Help Desk</span>
+                </div>
+                <div style="background:#fff;border:1px solid #e2e6f0;padding:32px;border-radius:0 0 12px 12px">
+                  <h2 style="color:#0F145B;margin:0 0 8px">¡Tienes una respuesta! 🎫</h2>
+                  <p style="color:#6b7280;margin:0 0 20px;line-height:1.6">Hola <strong>${(nombreEstudiante||'').split(' ')[0]||'estudiante'}</strong>, el equipo de TEA ha respondido a tu ticket <strong>${tema || ''}</strong>.</p>
+                  <div style="background:#eef1fb;border-left:3px solid #283A97;border-radius:0 8px 8px 0;padding:16px;margin-bottom:16px;color:#0F145B;line-height:1.6">${contenido}</div>
+                  ${adjuntosHtml}
+                  <a href="${portalLink}" style="display:inline-block;background:#283A97;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-top:20px">Ver en mi portal →</a>
+                </div>
+              </div>`
+            );
+          }
+          return send(res, 200, { ok: true });
+        } catch(e) { return send(res, 500, { ok: false, error: e.message }); }
+      }
+
       // ── BIBLIOTECA ───────────────────────────────────────────────────────
       case 'biblioteca': {
         try {
