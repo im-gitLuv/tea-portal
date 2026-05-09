@@ -325,7 +325,11 @@ document.addEventListener('DOMContentLoaded', function() {
   document.getElementById('adj-admin-input').addEventListener('change', function(e){
     agregarAdj(e.target.files); this.value = '';
   });
-  cargarTickets();
+  // Si la URL tiene un hash (ticketId), abrir ese ticket al cargar
+  cargarTickets().then(function() {
+    var hash = window.location.hash.replace('#', '').trim();
+    if (hash) abrirTicket(hash);
+  });
 });
 
 // ── QUILL ─────────────────────────────────────────────────────────────────────
@@ -356,7 +360,6 @@ async function cargarTickets() {
       '<div style="padding:20px;color:#a32d2d;font-size:13px">Error al cargar: ' + e.message + '</div>';
   }
 }
-
 // ── FILTRAR ───────────────────────────────────────────────────────────────────
 function filtrar() {
   var buscar  = document.getElementById('buscar').value.trim().toLowerCase();

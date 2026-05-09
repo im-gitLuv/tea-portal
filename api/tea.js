@@ -669,8 +669,8 @@ module.exports = async function handler(req, res) {
           }
         } catch(atErr) { console.error('Airtable error:', atErr.message); }
 
-        // 2. Email de notificación a TEA con link directo a Airtable
-        const airtableLink = `https://airtable.com/${AIRTABLE_BASE}/${AIRTABLE_TABLE}/${ticketId || ''}`;
+        // 2. Email de notificación a TEA con link directo al panel de operador
+        const adminLink = `https://talkenglishaca.com/studentsarea/admin#${ticketId || ''}`;
         await enviarEmail(
           'yo.luisgonzalez_closer@outlook.com',
           `🎫 Nuevo ticket [${tipoLabel[tipo]||tipo}]: ${tema}`,
@@ -689,8 +689,7 @@ module.exports = async function handler(req, res) {
               </div>
               <p style="color:#0F145B;font-weight:600;margin:0 0 8px">Descripción:</p>
               <div style="background:#fff;border:1px solid #e2e6f0;border-radius:8px;padding:16px;color:#444;line-height:1.6;margin-bottom:24px">${descripcion}</div>
-              <a href="${airtableLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-bottom:16px">Abrir en Airtable →</a>
-              <p style="color:#6b7280;font-size:13px;line-height:1.6;margin:0">Para responder: abre el ticket en Airtable y añade un registro en la tabla <strong>Mensajes</strong> con Autor "TEA". El estudiante verá tu respuesta en el chat de su portal.</p>
+              <a href="${adminLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-bottom:16px">Abrir en panel de operador →</a>
             </div>
           </div>`
         );
@@ -794,7 +793,7 @@ module.exports = async function handler(req, res) {
           await airtable('PATCH', `/${ticketId}`, { fields: { Estado: 'Pendiente' } });
 
           // 3. Notificar a TEA por email
-          const airtableLink = `https://airtable.com/${AIRTABLE_BASE}/${AIRTABLE_TABLE}/${ticketId}`;
+          const adminLink = `https://talkenglishaca.com/studentsarea/admin#${ticketId}`;
           const adjuntosHtml = (adjuntos && adjuntos.length > 0)
             ? `<p style="margin:12px 0 4px;color:#0F145B;font-weight:600">Archivos adjuntos:</p>
                <ul style="margin:0;padding-left:18px;color:#444">${adjuntos.map(a => `<li><a href="${a.url}">${a.nombre}</a></li>`).join('')}</ul>`
@@ -812,7 +811,7 @@ module.exports = async function handler(req, res) {
                 <p style="color:#6b7280;margin:0 0 16px"><strong>${nombre || email}</strong> ha respondido en su ticket.</p>
                 <div style="background:#f4f6fb;border-radius:8px;padding:16px;margin-bottom:16px;color:#444;line-height:1.6">${contenido}</div>
                 ${adjuntosHtml}
-                <a href="${airtableLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-top:20px">Ver en Airtable →</a>
+                <a href="${adminLink}" style="display:inline-block;background:#EA0029;color:#fff;padding:12px 24px;border-radius:8px;text-decoration:none;font-weight:700;margin-top:20px">Responder en panel de operador →</a>
               </div>
             </div>`
           );
