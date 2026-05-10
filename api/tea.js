@@ -28,9 +28,9 @@ async function airtable(method, path, body) {
 }
 
 const PROFESORES = [
-  { nombre: 'Daniela Guzman',     userId: '8nZnZoJ4THtn2KwuFiqD', email: 'gladismarguzman@gmail.com',        foto: 'https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69ffe80ca7b9e0385a46c9b9.jpg' },
-  { nombre: 'David Gonzalez',     userId: 'ruaficj9PgvxfYsy0NfX', email: 'davidsecundaria20@gmail.com',      foto: '' },
-  { nombre: 'Isabella Rodríguez', userId: 'M6PmhYh3fqrFjcxyfdj5', email: 'isabellarodriguez.am@gmail.com',   foto: '' },
+  { nombre: 'Daniela Guzman',     userId: '8nZnZoJ4THtn2KwuFiqD', email: 'gladismarguzman@gmail.com',        foto: 'https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69ffe91da3dd25aa2ae98492.jpg' },
+  { nombre: 'David Gonzalez',     userId: 'ruaficj9PgvxfYsy0NfX', email: 'davidsecundaria20@gmail.com',      foto: 'https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69ffe91dbc1f77cc354a3664.jpeg' },
+  { nombre: 'Isabella Rodríguez', userId: 'M6PmhYh3fqrFjcxyfdj5', email: 'isabellarodriguez.am@gmail.com',   foto: 'https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69ffe91dbc1f77cc354a3663.jpg' },
   { nombre: 'Jeffry Ferrer',      userId: 'agZ9APmwt6J62RoEdUcX', email: 'ferrerjeffry9@gmail.com',          foto: '' },
   { nombre: 'Militza Castañeda',  userId: 'ufSR1xGQmBXgON6vMSRT', email: 'milidelvalle2000@gmail.com',       foto: '' },
 ];
