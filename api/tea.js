@@ -415,7 +415,6 @@ module.exports = async function handler(req, res) {
               id:               contacto?.id || prof.userId,
               userId:           prof.userId,
               nombre:           prof.nombre,
-              foto:             prof.foto || '',
               bio:              contacto?.customFields?.find(f => f.key === 'tea_bio')?.value || '',
               videoUrl:         contacto?.customFields?.find(f => f.key === 'tea_video_url')?.value || '',
               telefono,
@@ -591,6 +590,7 @@ module.exports = async function handler(req, res) {
         const { semana, fase } = calcularProgreso(cfById(contact, 'tea_fecha_inicio'));
 
         let profesorTelefono = '';
+        let profesorFoto     = '';
         const teacherId = cfById(contact, 'teacher_id');
         if (teacherId) {
           try {
@@ -598,6 +598,7 @@ module.exports = async function handler(req, res) {
             if (profMatch) {
               const profData = await funnelup(`/contacts/search/duplicate?locationId=${LOCATION_ID}&email=${encodeURIComponent(profMatch.email)}`);
               profesorTelefono = (profData?.contact?.phone || '').replace(/\D/g, '');
+              profesorFoto     = profMatch.foto || '';
             }
           } catch(e) { console.error('Error prof phone:', e.message); }
         }
@@ -612,6 +613,7 @@ module.exports = async function handler(req, res) {
             profesor:         cfById(contact, 'tea_profesor_asignado'),
             teacherId,
             profesorTelefono,
+            profesorFoto,
             semana,
             fase,
           },

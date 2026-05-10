@@ -73,7 +73,8 @@
   .info-val{font-weight:600;color:#0F145B}
   .info-tag{background:var(--azul);color:#fff;font-size:10px;font-weight:700;padding:2px 9px;border-radius:20px}
   .prof-box{display:flex;align-items:center;gap:14px;background:#f4f6fb;border-radius:10px;padding:14px;margin-bottom:14px}
-  .prof-ava{width:46px;height:46px;border-radius:50%;background:var(--azul);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0}
+  .prof-ava{width:46px;height:46px;border-radius:50%;background:var(--azul);color:#fff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;flex-shrink:0;overflow:hidden}
+  .prof-ava img{width:46px;height:46px;object-fit:cover;border-radius:50%;display:block}
   .prof-nombre{font-size:15px;font-weight:700;color:#0F145B}
   .prof-rol{font-size:12px;color:var(--suave)}
   .btn-wa{width:100%;margin-top:12px;background:#25D366;border:none;color:#fff;border-radius:9px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Work Sans',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;transition:background .2s}
@@ -557,7 +558,14 @@
 
     var profNombre = s.profesor || '—';
     var iniciales  = profNombre.split(' ').map(function(p){return p[0]||''}).join('').slice(0,2).toUpperCase();
-    document.getElementById('d-prof-ava').textContent    = iniciales;
+    var profAva    = document.getElementById('d-prof-ava');
+    if (s.profesorFoto) {
+      profAva.innerHTML = '<img src="' + s.profesorFoto + '" alt="' + profNombre + '" onerror="this.parentNode.innerHTML=\'' + iniciales + '\';this.parentNode.style.background=\'var(--azul)\'"/>';
+      profAva.style.background = 'none';
+    } else {
+      profAva.textContent      = iniciales;
+      profAva.style.background = 'var(--azul)';
+    }
     document.getElementById('d-prof-nombre').textContent = profNombre;
 
     var wa = document.getElementById('btn-wa');
