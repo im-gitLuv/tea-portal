@@ -11,7 +11,7 @@ const AIRTABLE_MENSAJES = 'tblkfBe3U5yxcNaDK';
 // ── Correos del equipo operador ── añade o comenta según necesites ──
 const EMAILS_OPERADOR = [
   'yo.luisgonzalez_closer@outlook.com',
-  // janathaly16@gmail.com
+  'janathaly16@gmail.com'
 ];
 
 async function airtable(method, path, body) {
