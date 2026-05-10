@@ -265,6 +265,9 @@
       data.profesores.forEach(function(prof, i) {
         var ini   = prof.nombre.split(' ').map(function(p){return p[0]||''}).join('').slice(0,2).toUpperCase();
         var color = COLORS[i % COLORS.length];
+        var avaHtml = prof.foto
+          ? '<div class="pava" style="background:none;padding:0;overflow:hidden"><img src="' + prof.foto + '" style="width:56px;height:56px;object-fit:cover;border-radius:50%;display:block" onerror="this.parentNode.innerHTML=\'<span style=&quot;font-size:20px;font-weight:700;color:#fff&quot;>' + ini + '</span>\';this.parentNode.style.background=\'' + color + '\'"/></div>'
+          : '<div class="pava" style="background:' + color + '">' + ini + '</div>';
         var cuposClass = prof.cuposDisponibles === 1 ? 'pcupos warn' : 'pcupos';
         var videoBtn = prof.videoUrl ? '<button class="pvideo" onclick="abrirVideo(\'' + prof.videoUrl + '\',event)">▶ Ver video</button>' : '';
         var card = document.createElement('div');
@@ -275,7 +278,7 @@
         card.dataset.bio    = prof.bio;
         card.dataset.email  = prof.email || '';
         card.innerHTML =
-          '<div class="pava" style="background:' + color + '">' + ini + '</div>' +
+          avaHtml +
           '<div class="pnombre">' + prof.nombre + '</div>' +
           '<div class="pbio">' + (prof.bio || 'Mentor certificado de Talk English Academy') + '</div>' +
           '<div class="' + cuposClass + '">' + prof.cuposDisponibles + ' cupo' + (prof.cuposDisponibles !== 1 ? 's' : '') + ' disponible' + (prof.cuposDisponibles !== 1 ? 's' : '') + '</div>' +

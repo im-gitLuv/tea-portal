@@ -28,11 +28,11 @@ async function airtable(method, path, body) {
 }
 
 const PROFESORES = [
-  { nombre: 'Daniela Guzman',     userId: '8nZnZoJ4THtn2KwuFiqD', email: 'gladismarguzman@gmail.com'       },
-  { nombre: 'David Gonzalez',     userId: 'ruaficj9PgvxfYsy0NfX', email: 'davidsecundaria20@gmail.com'     },
-  { nombre: 'Isabella Rodríguez', userId: 'M6PmhYh3fqrFjcxyfdj5', email: 'isabellarodriguez.am@gmail.com' },
-  { nombre: 'Jeffry Ferrer',      userId: 'agZ9APmwt6J62RoEdUcX', email: 'ferrerjeffry9@gmail.com'        },
-  { nombre: 'Militza Castañeda',  userId: 'ufSR1xGQmBXgON6vMSRT', email: 'milidelvalle2000@gmail.com'     },
+  { nombre: 'Daniela Guzman',     userId: '8nZnZoJ4THtn2KwuFiqD', email: 'gladismarguzman@gmail.com',        foto: '' },
+  { nombre: 'David Gonzalez',     userId: 'ruaficj9PgvxfYsy0NfX', email: 'davidsecundaria20@gmail.com',      foto: '' },
+  { nombre: 'Isabella Rodríguez', userId: 'M6PmhYh3fqrFjcxyfdj5', email: 'isabellarodriguez.am@gmail.com',   foto: '' },
+  { nombre: 'Jeffry Ferrer',      userId: 'agZ9APmwt6J62RoEdUcX', email: 'ferrerjeffry9@gmail.com',          foto: '' },
+  { nombre: 'Militza Castañeda',  userId: 'ufSR1xGQmBXgON6vMSRT', email: 'milidelvalle2000@gmail.com',       foto: '' },
 ];
 
 const ALUMNOS_INICIALES = {
@@ -415,6 +415,7 @@ module.exports = async function handler(req, res) {
               id:               contacto?.id || prof.userId,
               userId:           prof.userId,
               nombre:           prof.nombre,
+              foto:             prof.foto || '',
               bio:              contacto?.customFields?.find(f => f.key === 'tea_bio')?.value || '',
               videoUrl:         contacto?.customFields?.find(f => f.key === 'tea_video_url')?.value || '',
               telefono,
