@@ -622,6 +622,20 @@ module.exports = async function handler(req, res) {
       }
 
       // ── DEBUG ────────────────────────────────────────────────────────────
+      case 'debug_profesor': {
+        const { email } = req.query;
+        if (!email) return send(res, 400, { ok: false, error: 'email requerido' });
+        const data = await funnelup(`/contacts/search/duplicate?locationId=${LOCATION_ID}&email=${encodeURIComponent(email)}`);
+        const contact = data?.contact;
+        return send(res, 200, {
+          ok: true,
+          phone_raw:    contact?.phone    || null,
+          phone_limpio: (contact?.phone || '').replace(/\D/g, '') || null,
+          encontrado:   !!contact,
+          contactId:    contact?.id || null,
+        });
+      }
+
       case 'debug_calendario': {
         const { userId, fecha } = req.query;
         if (!userId || !fecha) return send(res, 400, { ok: false, error: 'userId y fecha requeridos' });
