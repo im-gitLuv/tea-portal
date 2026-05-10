@@ -7,7 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <style>
   *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-  html,body{height:100%;width:100%;margin:0;padding:0}
+  html,body{width:100%;margin:0;padding:0}
   body{font-family:'Work Sans',sans-serif;background:#f4f6fb;color:#1a1a2e;min-height:100vh;width:100vw}
   :root{--azul:#283A97;--azul-oscuro:#0F145B;--rojo:#EA0029;--borde:#e2e6f0;--suave:#6b7280;--radio:12px;--sombra:0 2px 12px rgba(40,58,151,0.08)}
   .topbar{background:#0F145B;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;width:100%}
@@ -75,9 +75,20 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   .loader-txt{font-size:13px;color:var(--suave)}
   .no-prof-msg{font-size:14px;color:var(--suave);grid-column:1/-1;padding:20px 0}
+
+/* ── FUNNELUP ESCAPE: overlay fijo que cubre todo el viewport ── */
+#tea-app-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 99999;
+  overflow: hidden;
+}
 </style>
 </head>
-<body>
+<body><div id="tea-app-overlay">
 
 <div id="top-bloque" class="topbar">
   <span class="topbar-logo">Talk <span>English</span> Academy</span>
@@ -328,5 +339,5 @@
     }
   }
 </script>
-</body>
+</div></body>
 </html>
