@@ -266,7 +266,7 @@
         var ini   = prof.nombre.split(' ').map(function(p){return p[0]||''}).join('').slice(0,2).toUpperCase();
         var color = COLORS[i % COLORS.length];
         var avaHtml = prof.foto
-          ? '<div class="pava" style="background:none;padding:0;overflow:hidden"><img src="' + prof.foto + '" style="width:56px;height:56px;object-fit:cover;border-radius:50%;display:block" onerror="this.parentNode.innerHTML=\'<span style=&quot;font-size:20px;font-weight:700;color:#fff&quot;>' + ini + '</span>\';this.parentNode.style.background=\'' + color + '\'"/></div>'
+          ? '<div class="pava" style="background:none;padding:0;overflow:hidden"><img src="' + prof.foto + '" style="width:56px;height:56px;object-fit:cover;border-radius:50%;display:block" onerror="this.parentNode.style.background=\'' + color + '\';this.parentNode.innerHTML=\'' + ini + '\'"/></div>'
           : '<div class="pava" style="background:' + color + '">' + ini + '</div>';
         var cuposClass = prof.cuposDisponibles === 1 ? 'pcupos warn' : 'pcupos';
         var videoBtn = prof.videoUrl ? '<button class="pvideo" onclick="abrirVideo(\'' + prof.videoUrl + '\',event)">▶ Ver video</button>' : '';
