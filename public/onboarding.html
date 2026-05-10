@@ -343,8 +343,13 @@
 <script>
 /* ── Desactivar overlay en el editor de FunnelUp ── */
 (function() {
-  var enEditor = false;
-  try { enEditor = window !== window.top; } catch(e) { enEditor = true; }
+  var href = window.location.href || '';
+  var ref  = document.referrer    || '';
+  var enEditor = (
+    href.indexOf('page-builder')  !== -1 ||
+    href.indexOf('source=website') !== -1 ||
+    ref.indexOf('funnelup.io')    !== -1
+  );
   if (enEditor) {
     var overlay = document.getElementById('tea-app-overlay');
     if (overlay) {
