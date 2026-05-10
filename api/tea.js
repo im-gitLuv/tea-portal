@@ -415,6 +415,7 @@ module.exports = async function handler(req, res) {
               id:               contacto?.id || prof.userId,
               userId:           prof.userId,
               nombre:           prof.nombre,
+              foto:             prof.foto || '',
               bio:              contacto?.customFields?.find(f => f.key === 'tea_bio')?.value || '',
               videoUrl:         contacto?.customFields?.find(f => f.key === 'tea_video_url')?.value || '',
               telefono,
