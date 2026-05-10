@@ -73,7 +73,7 @@
     </div>
     <button class="btn" id="btn-login" onclick="doLogin()">Ingresar al Portal</button>
     <button class="btn-link" onclick="ir('s-forgot-email')">¿Olvidaste tu contraseña?</button>
-    <div class="nota">Solo pueden acceder estudiantes verificados con el tag<br><span class="tag">TEA-Student ✓</span></div>
+    <div class="nota">Plataforma privada para alumnos de la academia<br><span class="tag">Acceso exclusivo para miembros</span></div>
   </div>
 
   <!-- PANTALLA 2: INGRESAR EMAIL PARA RECUPERAR -->
@@ -309,5 +309,23 @@
     }
   }
 </script>
-</div></body>
+</div>
+<script>
+/* ── Desactivar overlay en el editor de FunnelUp ── */
+(function() {
+  var enEditor = false;
+  try { enEditor = window !== window.top; } catch(e) { enEditor = true; }
+  if (enEditor) {
+    var overlay = document.getElementById('tea-app-overlay');
+    if (overlay) {
+      overlay.style.position = 'relative';
+      overlay.style.width    = '100%';
+      overlay.style.height   = 'auto';
+      overlay.style.zIndex   = 'auto';
+      overlay.style.overflow = 'visible';
+    }
+  }
+})();
+</script>
+</body>
 </html>
