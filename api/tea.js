@@ -28,7 +28,7 @@ async function airtable(method, path, body) {
 }
 
 const PROFESORES = [
-  { nombre: 'Daniela Guzman',     userId: '8nZnZoJ4THtn2KwuFiqD', email: 'gladismarguzman@gmail.com',        foto: '' },
+  { nombre: 'Daniela Guzman',     userId: '8nZnZoJ4THtn2KwuFiqD', email: 'gladismarguzman@gmail.com',        foto: 'https://assets.cdn.filesafe.space/9cXtL7yJiTR3U0C2xmDt/media/69ffe80ca7b9e0385a46c9b9.jpg' },
   { nombre: 'David Gonzalez',     userId: 'ruaficj9PgvxfYsy0NfX', email: 'davidsecundaria20@gmail.com',      foto: '' },
   { nombre: 'Isabella Rodríguez', userId: 'M6PmhYh3fqrFjcxyfdj5', email: 'isabellarodriguez.am@gmail.com',   foto: '' },
   { nombre: 'Jeffry Ferrer',      userId: 'agZ9APmwt6J62RoEdUcX', email: 'ferrerjeffry9@gmail.com',          foto: '' },
